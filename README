@@ -1,0 +1,16 @@
+Usage 
+schedshow [Options]
+
+Options:
+  -h, --help   show this help message and exit
+  -l LOGFILE   path of log file (required)
+  -a, --alloc  plot job allocations
+  -j, --jobs   plot number of waiting & running jobs
+  -n, --nodes  plot number of waiting $ running nodes
+  -r           print response time to terminal
+  -b           print bound slowdown to terminal
+  -w           print wait time to terminal
+  -o SAVEFILE  feature string of the output files
+  -s           show plot on the screen
+
+
