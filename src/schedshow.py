@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import time
-import datetime 
 import sys
 import matplotlib.pyplot as plt
 from color import add,getColor
@@ -11,7 +10,6 @@ SHOW = False
 
 def getWidth(line_data_dictionary):
     two=[] # two[0]: start point, two[1]: end point
-    host=[]
     host=line_data_dictionary["exec_host"].rsplit("-")
     if len(host)==4:
         x=host[1][1:]    # case 1: ANL-R20-R21-2048 ---> x=20 y=21
@@ -61,7 +59,6 @@ def parseLine(line):
 
 def parseLogFile(filename):
     #parse the whole work load file, return a raw job dictionary
-    min_start_flag=True
     line_data={}
     # raw_job_dict = { "<jobid>":line_data, "<jobid2>":line_data2, ...}
     raw_job_dict = {}
@@ -72,12 +69,6 @@ def parseLogFile(filename):
             line = line.strip("\n")
             line = line.strip("\r")
             line_data = parseLine(line)
-            
-            if min_start_flag and line_data.has_key("start"):
-                min_start = float(line_data["start"])
-                min_start_flag = False
-            if line_data.has_key("end"):
-                max_end = float(line_data["end"])
             
             jobid = line_data["jobid"]
             #new jobid encountered, add a new entry for this job
@@ -434,4 +425,3 @@ if __name__ == "__main__":
     endtime_sec = time.time()
     print "---Analysis and plotting are finished, please check saved figures if any---"
     print "Tasks accomplished in %s seconds" % (int(endtime_sec - starttime_sec))
-  
