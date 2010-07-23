@@ -11,7 +11,7 @@ from optparse import OptionParser
 
 SHOW = False
 
-def getWidth(line_data_dictionary):
+def get_width(line_data_dictionary):
     '''get job width'''
     two = [] # two[0]: start point, two[1]: end point
     host = line_data_dictionary["exec_host"].rsplit("-")
@@ -47,18 +47,18 @@ def parseLine(line):
      line_data[jobid:xxx, date:xxx, start_time:xxx, mjobidplane:xxx, etc.]
     '''
     line_data = {}
-    firstParse = line.split(";")
-    line_data["eventType"] = firstParse[1]  
+    first_parse = line.split(";")
+    line_data["eventType"] = first_parse[1]  
     
     # EventTypes: Q - submitting time, S - starting time, E - ending time
     
     if line_data["eventType"] == "Q":
-        line_data["submitTime"] = firstParse[0]
-    line_data["jobid"] = firstParse[2]
-    substr = firstParse.pop()
+        line_data["submitTime"] = first_parse[0]
+    line_data["jobid"] = first_parse[2]
+    substr = first_parse.pop()
     if len(substr) > 0:
-        secondParse = substr.split(" ")
-        for item in secondParse:
+        second_parse = substr.split(" ")
+        for item in second_parse:
             tup = item.partition("=")
             if not line_data.has_key(tup[0]):
                 line_data[tup[0]] = tup[2]
@@ -119,11 +119,11 @@ def draw_job_allocation(job_dict, min_start, max_end, savefile=None):
     fig = plt.figure()
     ax = fig.add_subplot(111)
     
-    timeTotal = max_end - min_start
+    time_total = max_end - min_start
     for k, v in job_dict.iteritems():
         start = float(v["start"])
         end = float(v["end"])
-        width = getWidth(v)
+        width = get_width(v)
         x = width[0]
         y = width[1]
     #print v["exec_host"]," ",x,"-",y,":",y-x   # this is for test
@@ -144,7 +144,7 @@ def draw_job_allocation(job_dict, min_start, max_end, savefile=None):
 		    'R37', 'R40', 'R47'], fontsize=6)
     ax.set_ylim(0, 80)
     
-    inteval = timeTotal / 10
+    inteval = time_total / 10
     timelist = []
     labels = []
     temptime = min_start
@@ -179,19 +179,19 @@ def draw_live_jobs(job_dict, min_start, max_end, savefile=None):
     inteval = (max_end-min_start) / 2000.0   # this may modified 
     timepoint = min_start
     timepoints = []
-    jobNumbers = []
+    job_numbers = []
     maxjob = 0
     for i in range(0, 2000):
-        jobNumber = 0
+        job_number = 0
         for k, v in job_dict.iteritems():
             if float(v["start"])<timepoint and timepoint<float(v["end"]):
-                jobNumber = jobNumber+1
-        if jobNumber > maxjob:
-            maxjob = jobNumber
-        jobNumbers.append(jobNumber)
+                job_number = job_number+1
+        if job_number > maxjob:
+            maxjob = job_number
+        job_numbers.append(job_number)
         timepoints.append(timepoint)
         timepoint = inteval + timepoint
-    ax.plot(timepoints, jobNumbers, color="red")
+    ax.plot(timepoints, job_numbers, color="red")
     ax.set_ylim(0, maxjob + maxjob*0.1, color="red")
     ax.set_ylabel("running jobs", color="red")
     
@@ -201,25 +201,25 @@ def draw_live_jobs(job_dict, min_start, max_end, savefile=None):
     timepoint = min_start
     timepoints = []
     
-    waitNumbers = []
+    wait_numbers = []
     maxwait = 0
     for i in range(0, 2000):
-        waitNumber = 0
+        wait_number = 0
         for k, v in job_dict.iteritems():
             if float(v["qtime"]) < timepoint and timepoint < float(v["start"]):
-                waitNumber = waitNumber+1
-        if waitNumber > maxwait:
-            maxwait = waitNumber
-        waitNumbers.append(waitNumber)
+                wait_number = wait_number+1
+        if wait_number > maxwait:
+            maxwait = wait_number
+        wait_numbers.append(wait_number)
         timepoints.append(timepoint)
         timepoint = inteval + timepoint
-    ax2.plot(timepoints, waitNumbers, color='blue')
+    ax2.plot(timepoints, wait_numbers, color='blue')
     ax2.set_ylim(0, maxwait+maxwait*0.1, color='blue')
     ax2.set_ylabel('waiting jobs', color='blue')
 
     ax.set_xlim( min_start , max_end )
-    timeTotal = max_end-min_start
-    inteval = timeTotal/10
+    time_total = max_end-min_start
+    inteval = time_total/10
     timelist = []
     labels = [] 
     temptime = min_start
@@ -254,19 +254,19 @@ def draw_sys_util(job_dict, min_start, max_end, savefile=None):
     inteval = (max_end-min_start)/2000.0   # this may modified 
     timepoint = min_start
     timepoints = []
-    jobNodes = []
+    job_nodes = []
     maxjobnode = 0
     for i in range(0, 2000):
-        jobNode = 0
+        job_node = 0
         for k, v in job_dict.iteritems():
             if float(v["start"]) < timepoint and timepoint < float(v["end"]):
-                jobNode = jobNode + int(v["Resource_List.nodect"])
-        if jobNode > maxjobnode:
-            maxjobnode = jobNode
-        jobNodes.append(jobNode)
+                job_node = job_node + int(v["Resource_List.nodect"])
+        if job_node > maxjobnode:
+            maxjobnode = job_node
+        job_nodes.append(job_node)
         timepoints.append(timepoint)
         timepoint = inteval + timepoint
-    ax.plot(timepoints, jobNodes, color="red")
+    ax.plot(timepoints, job_nodes, color="red")
     ax.set_ylim(0, maxjobnode+maxjobnode*0.1, color="red")
     ax.set_ylabel("running jobs", color="red")
     
@@ -276,26 +276,26 @@ def draw_sys_util(job_dict, min_start, max_end, savefile=None):
     timepoint = min_start
     timepoints = []
     
-    waitNodes = []
+    wait_nodes = []
     maxwaitnode = 0
     for i in range(0, 2000):
-        waitNode = 0
+        wait_node = 0
         for k, v in job_dict.iteritems():
             if float(v["qtime"]) < timepoint and timepoint < float(v["start"]):
-                waitNode = waitNode + int(v["Resource_List.nodect"])
-        if waitNode > maxwaitnode:
-            maxwaitnode = waitNode
-        waitNodes.append(waitNode)
+                wait_node = wait_node + int(v["Resource_List.nodect"])
+        if wait_node > maxwaitnode:
+            maxwaitnode = wait_node
+        wait_nodes.append(wait_node)
         timepoints.append(timepoint)
         timepoint = inteval + timepoint
-    ax2.plot(timepoints, waitNodes, color='blue')
+    ax2.plot(timepoints, wait_nodes, color='blue')
     ax2.set_ylim(0, maxwaitnode + maxwaitnode*0.1)
     ax2.set_ylabel('waiting jobs', color='blue')
    
     # plot for x axes and its labels
     ax.set_xlim(min_start , max_end)
-    timeTotal = max_end - min_start
-    inteval = timeTotal/10
+    time_total = max_end - min_start
+    inteval = time_total/10
     timelist = []
     labels = []
     temptime = min_start
