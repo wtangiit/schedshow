@@ -12,7 +12,7 @@ def getWidth(line_data_dictionary):
     '''get job width'''
     two=[] # two[0]: start point, two[1]: end point
     host=line_data_dictionary["exec_host"].rsplit("-")
-    if len(host)==4:
+    if len(host) == 4:
         x=host[1][1:]    # case 1: ANL-R20-R21-2048 ---> x=20 y=21
         y=host[2][1:]    # case 2: ANL-R44-M1-512   ---> x=44 y=1 else:
     else:
@@ -100,9 +100,9 @@ def parseLogFile(filename):
 
 def getInHMS(seconds):
     hours = int(seconds) / 3600
-    seconds =seconds - 3600*hours
+    seconds = seconds - 3600*hours
     minutes = int(seconds) / 60
-    seconds =seconds - 60*minutes
+    seconds = seconds - 60*minutes
     return "%02d:%02d:%02d" % (hours, minutes, seconds)
 
 def draw_job_allocation(job_dict, min_start, max_end, savefile=None):
@@ -132,7 +132,7 @@ def draw_job_allocation(job_dict, min_start, max_end, savefile=None):
         #    ax.broken_barh([(start,end-start)],(i,1),facecolor=currentColor)
         ax.barh(x, end-start, y-x, start, facecolor=currentColor)
     
-    yticks=[0, 15, 16, 31, 32, 47, 48, 63, 64, 80]
+    yticks = [0, 15, 16, 31, 32, 47, 48, 63, 64, 80]
     ax.set_yticks(yticks)
     ax.set_yticklabels(['R00','R07','R10','R17','R20','R27','R30','R37','R40','R47'],fontsize=6)
     ax.set_ylim(0, 80)
@@ -341,7 +341,7 @@ def show_slowdown(job_dict):
         temp2 = float(v["end"])-float(v["start"])
         temp = (temp1+temp2)/temp2
         li.append(temp)
-    total=0.0
+    total = 0.0
     for item in li:
         total += item
     average = total/float(len(li))
@@ -375,8 +375,8 @@ def show_wait(job_dict):
 
 if __name__ == "__main__":
     p = OptionParser()
-    p.add_option("-l", dest="logfile", type="string", 
-                 help="path of log file (required)")
+    p.add_option("-l", dest = "logfile", type="string", 
+                 help = "path of log file (required)")
     p.add_option("-a", "--alloc", dest="alloc", action="store_true", default=False, 
                  help="plot bars represent for individual jobs ")
     p.add_option("-j", "--jobs", dest="jobs", action="store_true", default=False, 
