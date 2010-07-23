@@ -1,23 +1,26 @@
 #!/usr/bin/env python
+'''Schedshow is a integrated program which will analyse the out \
+		put file from Qsim. This program is written in python, \
+		which utilizes an external library -- "matplotlib". '''
 
 import time
 import sys
 import matplotlib.pyplot as plt
-from color import add,getColor
+from color import add, getColor
 from optparse import OptionParser
 
 SHOW = False
 
 def getWidth(line_data_dictionary):
     '''get job width'''
-    two=[] # two[0]: start point, two[1]: end point
-    host=line_data_dictionary["exec_host"].rsplit("-")
+    two = [] # two[0]: start point, two[1]: end point
+    host = line_data_dictionary["exec_host"].rsplit("-")
     if len(host) == 4:
-        x=host[1][1:]    # case 1: ANL-R20-R21-2048 ---> x=20 y=21
-        y=host[2][1:]    # case 2: ANL-R44-M1-512   ---> x=44 y=1 else:
+        x = host[1][1:]    # case 1: ANL-R20-R21-2048 ---> x=20 y=21
+        y = host[2][1:]    # case 2: ANL-R44-M1-512   ---> x=44 y=1 else:
     else:
-        x=host[1][1:]    # case 3: ANL-R25-1024     ---> x=25 y=25
-        y=host[1][1:]
+        x = host[1][1:]    # case 3: ANL-R25-1024     ---> x=25 y=25
+        y = host[1][1:]
      
     # Here x y are numbers represent for row and colums 
     # Following is converting them to x1 & y1 which are in "80" form
@@ -33,6 +36,8 @@ def getWidth(line_data_dictionary):
     return two
 
 def date_to_sec(fmtdate, dateformat="%m/%d/%Y %H:%M:%S"):
+    '''convert date into seconds'''
+
     t_tuple = time.strptime(fmtdate, dateformat)
     sec = time.mktime(t_tuple)
     return sec
@@ -41,9 +46,9 @@ def parseLine(line):
     '''parse a line into dictionary form:
      line_data[jobid:xxx, date:xxx, start_time:xxx, mjobidplane:xxx, etc.]
     '''
-    line_data={}
-    firstParse=line.split(";")
-    line_data["eventType"]=firstParse[1]  
+    line_data = {}
+    firstParse = line.split(";")
+    line_data["eventType"] = firstParse[1]  
     
     # EventTypes: Q - submitting time, S - starting time, E - ending time
     
@@ -61,7 +66,7 @@ def parseLine(line):
 
 def parseLogFile(filename):
     '''parse the whole work load file'''
-    line_data={}
+    line_data = {}
     # raw_job_dict = { "<jobid>":line_data, "<jobid2>":line_data2, ...}
     raw_job_dict = {}
     wlf = open(filename, "r")
@@ -79,11 +84,11 @@ def parseLogFile(filename):
             else:  #not a new job jobid, update the existing entry
                 raw_job_dict[jobid].update(line_data)
                 
-    job_dict={}
+    job_dict = {}
     min_qtime = sys.maxint
     min_start = sys.maxint
     max_end = 0
-    for k,v in raw_job_dict.iteritems():
+    for k, v in raw_job_dict.iteritems():
         if v.has_key("end") and v.has_key("submitTime"):
             qtime_sec = date_to_sec(v['submitTime'])
             if qtime_sec < min_qtime:
@@ -99,6 +104,7 @@ def parseLogFile(filename):
     return job_dict, min_qtime, min_start, max_end
 
 def getInHMS(seconds):
+    '''this allows convert sec into form HH:MM:SS'''
     hours = int(seconds) / 3600
     seconds = seconds - 3600*hours
     minutes = int(seconds) / 60
@@ -134,20 +140,21 @@ def draw_job_allocation(job_dict, min_start, max_end, savefile=None):
     
     yticks = [0, 15, 16, 31, 32, 47, 48, 63, 64, 80]
     ax.set_yticks(yticks)
-    ax.set_yticklabels(['R00','R07','R10','R17','R20','R27','R30','R37','R40','R47'],fontsize=6)
+    ax.set_yticklabels(['R00', 'R07', 'R10', 'R17', 'R20', 'R27', 'R30', \
+		    'R37', 'R40', 'R47'], fontsize=6)
     ax.set_ylim(0, 80)
     
     inteval = timeTotal / 10
     timelist = []
     labels = []
     temptime = min_start
-    for i in range(0,11):
+    for i in range(0, 11):
         timelist.append(temptime)
         temptime = temptime+inteval
-    for i in range(0,11):
+    for i in range(0, 11):
         labels.append(time.asctime(time.localtime(timelist[i])))
     ax.set_xticks(timelist)
-    ax.set_xticklabels(labels,fontsize = 6)
+    ax.set_xticklabels(labels, fontsize = 6)
     ax.set_xlim(min_start , max_end)
     ax.set_xlabel('Time')
     
@@ -174,9 +181,9 @@ def draw_live_jobs(job_dict, min_start, max_end, savefile=None):
     timepoints = []
     jobNumbers = []
     maxjob = 0
-    for i in range(0,2000):
+    for i in range(0, 2000):
         jobNumber = 0
-        for k,v in job_dict.iteritems():
+        for k, v in job_dict.iteritems():
             if float(v["start"])<timepoint and timepoint<float(v["end"]):
                 jobNumber = jobNumber+1
         if jobNumber > maxjob:
@@ -185,7 +192,7 @@ def draw_live_jobs(job_dict, min_start, max_end, savefile=None):
         timepoints.append(timepoint)
         timepoint = inteval + timepoint
     ax.plot(timepoints, jobNumbers, color="red")
-    ax.set_ylim(0,maxjob + maxjob*0.1, color="red")
+    ax.set_ylim(0, maxjob + maxjob*0.1, color="red")
     ax.set_ylabel("running jobs", color="red")
     
     #waiting job axes
@@ -196,9 +203,9 @@ def draw_live_jobs(job_dict, min_start, max_end, savefile=None):
     
     waitNumbers = []
     maxwait = 0
-    for i in range(0,2000):
+    for i in range(0, 2000):
         waitNumber = 0
-        for k,v in job_dict.iteritems():
+        for k, v in job_dict.iteritems():
             if float(v["qtime"]) < timepoint and timepoint < float(v["start"]):
                 waitNumber = waitNumber+1
         if waitNumber > maxwait:
@@ -206,23 +213,23 @@ def draw_live_jobs(job_dict, min_start, max_end, savefile=None):
         waitNumbers.append(waitNumber)
         timepoints.append(timepoint)
         timepoint = inteval + timepoint
-    ax2.plot(timepoints,waitNumbers,color='blue')
-    ax2.set_ylim(0,maxwait+maxwait*0.1,color='blue')
-    ax2.set_ylabel('waiting jobs',color='blue')
+    ax2.plot(timepoints, waitNumbers, color='blue')
+    ax2.set_ylim(0, maxwait+maxwait*0.1, color='blue')
+    ax2.set_ylabel('waiting jobs', color='blue')
 
-    ax.set_xlim( min_start ,max_end )
+    ax.set_xlim( min_start , max_end )
     timeTotal = max_end-min_start
     inteval = timeTotal/10
     timelist = []
     labels = [] 
     temptime = min_start
-    for i in range(0,11):
+    for i in range(0, 11):
         timelist.append(temptime)
         temptime = temptime + inteval
-    for i in range(0,11):
+    for i in range(0, 11):
         labels.append(time.asctime(time.localtime(timelist[i])))
-    for i in range(0,11):
-        labels[i]=labels[i][4:19]
+    for i in range(0, 11):
+        labels[i] = labels[i][4:19]
     ax.set_xticks(timelist)
     ax.set_xticklabels(labels, fontsize=6)
     ax.set_xlabel('Time')
@@ -249,9 +256,9 @@ def draw_sys_util(job_dict, min_start, max_end, savefile=None):
     timepoints = []
     jobNodes = []
     maxjobnode = 0
-    for i in range(0,2000):
+    for i in range(0, 2000):
         jobNode = 0
-        for k,v in job_dict.iteritems():
+        for k, v in job_dict.iteritems():
             if float(v["start"]) < timepoint and timepoint < float(v["end"]):
                 jobNode = jobNode + int(v["Resource_List.nodect"])
         if jobNode > maxjobnode:
@@ -264,14 +271,14 @@ def draw_sys_util(job_dict, min_start, max_end, savefile=None):
     ax.set_ylabel("running jobs", color="red")
     
     #waiting job axes
-    ax2 =ax.twinx()
+    ax2 = ax.twinx()
     inteval = (max_end-min_start) / 2000.0 #2000 points here
     timepoint = min_start
-    timepoints =[]
+    timepoints = []
     
     waitNodes = []
     maxwaitnode = 0
-    for i in range(0,2000):
+    for i in range(0, 2000):
         waitNode = 0
         for k, v in job_dict.iteritems():
             if float(v["qtime"]) < timepoint and timepoint < float(v["start"]):
@@ -282,11 +289,11 @@ def draw_sys_util(job_dict, min_start, max_end, savefile=None):
         timepoints.append(timepoint)
         timepoint = inteval + timepoint
     ax2.plot(timepoints, waitNodes, color='blue')
-    ax2.set_ylim(0,maxwaitnode + maxwaitnode*0.1)
+    ax2.set_ylim(0, maxwaitnode + maxwaitnode*0.1)
     ax2.set_ylabel('waiting jobs', color='blue')
    
     # plot for x axes and its labels
-    ax.set_xlim(min_start ,max_end)
+    ax.set_xlim(min_start , max_end)
     timeTotal = max_end - min_start
     inteval = timeTotal/10
     timelist = []
@@ -300,7 +307,7 @@ def draw_sys_util(job_dict, min_start, max_end, savefile=None):
     for i in range(0, 11):
         labels[i] = labels[i][4:19]
     ax.set_xticks(timelist)
-    ax.set_xticklabels(labels,fontsize=6)
+    ax.set_xticklabels(labels, fontsize=6)
     ax.set_xlabel('Time')
     ax.grid(True)
     
@@ -317,7 +324,7 @@ def draw_sys_util(job_dict, min_start, max_end, savefile=None):
 def show_resp(job_dict):
     '''calculate response time'''
     li = []
-    for k,v in job_dict.iteritems():
+    for k, v in job_dict.iteritems():
         temp = float(v["end"])-float(v["qtime"])
         li.append(temp)
     total = 0.0
@@ -335,7 +342,7 @@ def show_resp(job_dict):
 
 def show_slowdown(job_dict):
     '''calculate slowdown'''
-    li=[]
+    li = []
     for k, v in job_dict.iteritems():
         temp1 = float(v["start"])-float(v["qtime"])
         temp2 = float(v["end"])-float(v["start"])
@@ -357,7 +364,7 @@ def show_slowdown(job_dict):
 def show_wait(job_dict):
     '''calculate waiting time'''
     li = []
-    for k,v in job_dict.iteritems():
+    for k, v in job_dict.iteritems():
         temp = float(v["start"]) - float(v["qtime"])
         li.append(temp)
     total = 0.0
@@ -377,22 +384,29 @@ if __name__ == "__main__":
     p = OptionParser()
     p.add_option("-l", dest = "logfile", type="string", 
                  help = "path of log file (required)")
-    p.add_option("-a", "--alloc", dest="alloc", action="store_true", default=False, 
-                 help="plot bars represent for individual jobs ")
-    p.add_option("-j", "--jobs", dest="jobs", action="store_true", default=False, 
-                 help="show number of waiting & running jobs")
-    p.add_option("-n", "--nodes", dest="nodes", action="store_true", default=False,
-                 help="show number of waiting $ running nodes")
-    p.add_option("-r", dest="response", action="store_true", default=False,
-                 help="print response time to terminal")
-    p.add_option("-b", dest="slowdown", action="store_true", default=False,
-                 help="print bound time to terminal")
-    p.add_option("-w", dest="wait", action="store_true", default=False,
-                 help="print wait time to terminal")
-    p.add_option("-o", dest="savefile", default="schedshow",
-                 help="feature string of the output files")
-    p.add_option("-s", dest="show", action="store_true", default=False,
-                 help="show plot on the screen")
+    p.add_option("-a", "--alloc", dest="alloc", action="store_true", \
+		    default=False, \
+		    help="plot bars represent for individual jobs ")
+    p.add_option("-j", "--jobs", dest="jobs", action="store_true", \
+		    default=False, \
+		    help="show number of waiting & running jobs")
+    p.add_option("-n", "--nodes", dest="nodes", action="store_true", \
+		    default=False, \
+                    help="show number of waiting $ running nodes")
+    p.add_option("-r", dest="response", action="store_true", \
+		    default=False, \
+                    help="print response time to terminal")
+    p.add_option("-b", dest="slowdown", action="store_true", \
+		    default=False, \
+                    help="print bound time to terminal")
+    p.add_option("-w", dest="wait", action="store_true", \
+		    default=False, \
+                    help="print wait time to terminal")
+    p.add_option("-o", dest="savefile", default="schedshow", \
+                    help="feature string of the output files")
+    p.add_option("-s", dest="show", action="store_true", \
+		    default=False,
+                    help="show plot on the screen")
     (opts, args)=p.parse_args()
     
     if not opts.logfile:
@@ -431,5 +445,7 @@ if __name__ == "__main__":
         show_wait(job_dict)
 
     endtime_sec = time.time()
-    print "---Analysis and plotting are finished, please check saved figures if any---"
-    print "Tasks accomplished in %s seconds" % (int(endtime_sec - starttime_sec))
+    print "---Analysis and plotting are finished, \
+		    please check saved figures if any---"
+    print "Tasks accomplished in %s seconds" \
+		    % (int(endtime_sec - starttime_sec))
