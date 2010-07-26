@@ -156,8 +156,10 @@ def parseLogFile(filename):
                 min_start = float(v['start'])
             if float(v['end']) > max_end:
                 max_end = float(v['end'])
+            #exclude deleted jobs which runtime is 0
+            if float(v["end"]) - float(v["start"]) <= 0:
+                continue
             job_dict[k] = v 
-    
     wlf.close()
                                      
     return job_dict, min_qtime, min_start, max_end
@@ -393,19 +395,19 @@ def show_resp(job_dict):
     li.sort()
     maximum = li[len(li)-1]
     minimum = li[0]
-    print "Response time\tTime in minutes\t\tTime in HMS"
-    print "average:\t", int(average/60), "\t\t", getInHMS(average)
-    print "maximum:\t", int(maximum/60), "\t\t", getInHMS(maximum)
-    print "minimum:\t", int(minimum/60), "\t\t", getInHMS(minimum)
+    print "Response time\tTime in seconds\t\tTime in HMS"
+    print "average:\t", int(average), "\t\t", getInHMS(average)
+    print "maximum:\t", int(maximum), "\t\t", getInHMS(maximum)
+    print "minimum:\t", int(minimum), "\t\t", getInHMS(minimum)
     print "\n"
 
 def show_slowdown(job_dict):
     '''calculate slowdown'''
     li = []
     for k, v in job_dict.iteritems():
-        temp1 = float(v["start"])-float(v["qtime"])
-        temp2 = float(v["end"])-float(v["start"])
-        temp = (temp1+temp2)/temp2
+        temp1 = float(v["start"]) - float(v["qtime"])
+        temp2 = float(v["end"]) - float(v["start"])
+        temp = (temp1 + temp2) / temp2
         li.append(temp)
     total = 0.0
     for item in li:
@@ -433,10 +435,10 @@ def show_wait(job_dict):
     li.sort()
     maximum = li[len(li)-1]
     minimum = li[0]
-    print "Wait time\tTime in minutes\t\tTime in HMS"
-    print "average:\t", int(average/60), "\t\t", getInHMS(average)
-    print "maximum:\t", int(maximum/60), "\t\t", getInHMS(maximum)
-    print "minimum:\t", int(minimum/60), "\t\t", getInHMS(minimum)
+    print "Wait time\tTime in seconds\t\tTime in HMS"
+    print "average:\t", int(average), "\t\t", getInHMS(average)
+    print "maximum:\t", int(maximum), "\t\t", getInHMS(maximum)
+    print "minimum:\t", int(minimum), "\t\t", getInHMS(minimum)
     print "\n"
 
 if __name__ == "__main__":
@@ -457,7 +459,7 @@ if __name__ == "__main__":
                     help="print response time to terminal")
     p.add_option("-b", dest="slowdown", action="store_true", \
 		    default=False, \
-                    help="print bound time to terminal")
+                    help="print bounded slowdown to terminal")
     p.add_option("-w", dest="wait", action="store_true", \
 		    default=False, \
                     help="print wait time to terminal")
@@ -466,12 +468,17 @@ if __name__ == "__main__":
     p.add_option("-s", dest="show", action="store_true", \
 		    default=False,
                     help="show plot on the screen")
+    p.add_option("-A", "--All", dest="run_all", action="store_true", \
+            default=False,  help="run all functions")
     (opts, args)=p.parse_args()
     
     if not opts.logfile:
         print "please specify path of log file"
         p.print_help()
         exit()
+        
+    if opts.run_all:
+        opts.alloc = opts.jobs = opts.nodes = opts.response = opts.slowdown = opts.wait = True
         
     if opts.savefile:
         savefile = opts.savefile
@@ -486,6 +493,14 @@ if __name__ == "__main__":
     (job_dict, first_submit, first_start, last_end)=parseLogFile(opts.logfile)
 
     print "number of jobs:", len(job_dict.keys())
+    
+    if opts.response:
+        show_resp(job_dict)
+    if opts.slowdown:
+        show_slowdown(job_dict)
+    if opts.wait:
+        show_wait(job_dict)
+    
 #print color_bars
     if opts.alloc:
         draw_job_allocation(job_dict, first_submit, last_end, savefile)
@@ -496,12 +511,7 @@ if __name__ == "__main__":
     if opts.nodes:
         draw_sys_util(job_dict, first_submit, last_end, savefile)
 
-    if opts.response:
-        show_resp(job_dict)
-    if opts.slowdown:
-        show_slowdown(job_dict)
-    if opts.wait:
-        show_wait(job_dict)
+
 
     endtime_sec = time.time()
     print "---Analysis and plotting are finished, \
