@@ -394,11 +394,22 @@ def show_resp(job_dict):
     average = total/float(len(li))
     li.sort()
     maximum = li[len(li)-1]
+    median = li[len(li)/2]
+    index = int(len(li) * 0.99)
+    percentile_99 = li[index]
+    index = int(len(li) * 0.90)
+    percentile_90 = li[index]
+    index = int(len(li) * 0.80)
+    percentile_80 = li[index]
     minimum = li[0]
-    print "Response time\tTime in seconds\t\tTime in HMS"
-    print "average:\t", int(average), "\t\t", getInHMS(average)
-    print "maximum:\t", int(maximum), "\t\t", getInHMS(maximum)
-    print "minimum:\t", int(minimum), "\t\t", getInHMS(minimum)
+    print "Resp time: Seconds (HMS)"
+    print "average: %s (%s)" % (int(average), getInHMS(average))
+    print "maximum: %s (%s)" % (int(maximum), getInHMS(maximum))
+    print "99th percentile: %s (%s)" % (int(percentile_99), getInHMS(percentile_99))
+    print "90th percentile: %s (%s)" % (int(percentile_90), getInHMS(percentile_90))
+    print "80th percentile: %s (%s)" % (int(percentile_80), getInHMS(percentile_80))
+    print "median: %s (%s)" % (int(median), getInHMS(median))
+    print "minimum: %s (%s)" % (int(minimum), getInHMS(minimum))
     print "\n"
 
 def show_slowdown(job_dict):
@@ -415,10 +426,21 @@ def show_slowdown(job_dict):
     average = total/float(len(li))
     li.sort()
     maximum = li[len(li)-1]
+    median = li[len(li)/2]
+    index = int(len(li) * 0.99)
+    percentile_99 = li[index]
+    index = int(len(li) * 0.90)
+    percentile_90 = li[index]
+    index = int(len(li) * 0.80)
+    percentile_80 = li[index]
     minimum = li[0]
     print "Bounded Slowdown"
     print "average:\t", average
     print "maximum:\t", maximum
+    print "99th percentile:\t", percentile_99
+    print "90th percentile:\t", percentile_90
+    print "80th percentile:\t", percentile_80
+    print "median:\t", median
     print "minimum:\t", minimum
     print "\n"
 
@@ -434,11 +456,22 @@ def show_wait(job_dict):
     average = total/float(len(li))
     li.sort()
     maximum = li[len(li)-1]
+    median = li[len(li)/2]
+    index = int(len(li) * 0.99)
+    percentile_99 = li[index]
+    index = int(len(li) * 0.90)
+    percentile_90 = li[index]
+    index = int(len(li) * 0.80)
+    percentile_80 = li[index]
     minimum = li[0]
-    print "Wait time\tTime in seconds\t\tTime in HMS"
-    print "average:\t", int(average), "\t\t", getInHMS(average)
-    print "maximum:\t", int(maximum), "\t\t", getInHMS(maximum)
-    print "minimum:\t", int(minimum), "\t\t", getInHMS(minimum)
+    print "Wait time: Seconds (HMS)"
+    print "average: %s (%s)" % (int(average), getInHMS(average))
+    print "maximum: %s (%s)" % (int(maximum), getInHMS(maximum))
+    print "99th percentile: %s (%s)" % (int(percentile_99), getInHMS(percentile_99))
+    print "90th percentile: %s (%s)" % (int(percentile_90), getInHMS(percentile_90))
+    print "80th percentile: %s (%s)" % (int(percentile_80), getInHMS(percentile_80))
+    print "median: %s (%s)" % (int(median), getInHMS(median))
+    print "minimum: %s (%s)" % (int(minimum), getInHMS(minimum))
     print "\n"
 
 if __name__ == "__main__":
