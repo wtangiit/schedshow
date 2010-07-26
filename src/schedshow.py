@@ -147,19 +147,29 @@ def parseLogFile(filename):
     min_qtime = sys.maxint
     min_start = sys.maxint
     max_end = 0
-    for k, v in raw_job_dict.iteritems():
-        if v.has_key("end") and v.has_key("submitTime"):
-            qtime_sec = date_to_sec(v['submitTime'])
+    for jobid, spec in raw_job_dict.iteritems():
+        if spec.has_key("end") and spec.has_key("submitTime"):
+            qtime_sec = date_to_sec(spec['submitTime'])
             if qtime_sec < min_qtime:
                 min_qtime = qtime_sec
-            if float(v['start']) < min_start:
-                min_start = float(v['start'])
-            if float(v['end']) > max_end:
-                max_end = float(v['end'])
+            if float(spec['start']) < min_start:
+                min_start = float(spec['start'])
+            if float(spec['end']) > max_end:
+                max_end = float(spec['end'])
             #exclude deleted jobs which runtime is 0
-            if float(v["end"]) - float(v["start"]) <= 0:
+            if float(spec["end"]) - float(spec["start"]) <= 0:
                 continue
-            job_dict[k] = v 
+            
+            format_walltime = spec.get('Resource_List.walltime')
+            spec['walltime'] = 0
+            if format_walltime:
+                segs = format_walltime.split(':')
+                walltime_minuntes = int(segs[0])*60 + int(segs[1])
+                spec['walltime'] = str(int(segs[0])*60 + int(segs[1]))
+            else:  #invalid job entry, discard
+                continue
+            
+            job_dict[jobid] = spec 
     wlf.close()
                                      
     return job_dict, min_qtime, min_start, max_end
@@ -411,6 +421,36 @@ def show_resp(job_dict):
     print "median: %s (%s)" % (int(median), getInHMS(median))
     print "minimum: %s (%s)" % (int(minimum), getInHMS(minimum))
     print "\n"
+    
+def show_wait(job_dict):
+    '''calculate waiting time'''
+    li = []
+    for k, v in job_dict.iteritems():
+        temp = float(v["start"]) - float(v["qtime"])
+        li.append(temp)
+    total = 0.0
+    for item in li:
+        total += item
+    average = total/float(len(li))
+    li.sort()
+    maximum = li[len(li)-1]
+    median = li[len(li)/2]
+    index = int(len(li) * 0.99)
+    percentile_99 = li[index]
+    index = int(len(li) * 0.90)
+    percentile_90 = li[index]
+    index = int(len(li) * 0.80)
+    percentile_80 = li[index]
+    minimum = li[0]
+    print "Wait time: Seconds (HMS)"
+    print "average: %s (%s)" % (int(average), getInHMS(average))
+    print "maximum: %s (%s)" % (int(maximum), getInHMS(maximum))
+    print "99th percentile: %s (%s)" % (int(percentile_99), getInHMS(percentile_99))
+    print "90th percentile: %s (%s)" % (int(percentile_90), getInHMS(percentile_90))
+    print "80th percentile: %s (%s)" % (int(percentile_80), getInHMS(percentile_80))
+    print "median: %s (%s)" % (int(median), getInHMS(median))
+    print "minimum: %s (%s)" % (int(minimum), getInHMS(minimum))
+    print "\n"
 
 def show_slowdown(job_dict):
     '''calculate slowdown'''
@@ -444,12 +484,14 @@ def show_slowdown(job_dict):
     print "minimum:\t", minimum
     print "\n"
 
-def show_wait(job_dict):
-    '''calculate waiting time'''
+def show_uwait(job_dict):
+    '''calculate unitless wait'''
     li = []
     for k, v in job_dict.iteritems():
-        temp = float(v["start"]) - float(v["qtime"])
-        li.append(temp)
+        wait = float(v["start"]) - float(v["qtime"])
+        walltime_sec = 60 * float(v['walltime'])
+        uwait = wait / walltime_sec
+        li.append(uwait)
     total = 0.0
     for item in li:
         total += item
@@ -464,14 +506,14 @@ def show_wait(job_dict):
     index = int(len(li) * 0.80)
     percentile_80 = li[index]
     minimum = li[0]
-    print "Wait time: Seconds (HMS)"
-    print "average: %s (%s)" % (int(average), getInHMS(average))
-    print "maximum: %s (%s)" % (int(maximum), getInHMS(maximum))
-    print "99th percentile: %s (%s)" % (int(percentile_99), getInHMS(percentile_99))
-    print "90th percentile: %s (%s)" % (int(percentile_90), getInHMS(percentile_90))
-    print "80th percentile: %s (%s)" % (int(percentile_80), getInHMS(percentile_80))
-    print "median: %s (%s)" % (int(median), getInHMS(median))
-    print "minimum: %s (%s)" % (int(minimum), getInHMS(minimum))
+    print "Unitless Wait"
+    print "average:\t", average
+    print "maximum:\t", maximum
+    print "99th percentile:\t", percentile_99
+    print "90th percentile:\t", percentile_90
+    print "80th percentile:\t", percentile_80
+    print "median:\t", median
+    print "minimum:\t", minimum
     print "\n"
 
 if __name__ == "__main__":
@@ -496,6 +538,9 @@ if __name__ == "__main__":
     p.add_option("-w", dest="wait", action="store_true", \
 		    default=False, \
                     help="print wait time to terminal")
+    p.add_option("-u", dest="uwait", action="store_true", \
+            default=False, \
+                    help="print unitless wait (waittime/walltime) ")
     p.add_option("-o", dest="savefile", default="schedshow", \
                     help="feature string of the output files")
     p.add_option("-s", dest="show", action="store_true", \
@@ -511,7 +556,7 @@ if __name__ == "__main__":
         exit()
         
     if opts.run_all:
-        opts.alloc = opts.jobs = opts.nodes = opts.response = opts.slowdown = opts.wait = True
+        opts.alloc = opts.jobs = opts.nodes = opts.response = opts.slowdown = opts.wait = opts.uwait = True
         
     if opts.savefile:
         savefile = opts.savefile
@@ -529,10 +574,12 @@ if __name__ == "__main__":
     
     if opts.response:
         show_resp(job_dict)
-    if opts.slowdown:
-        show_slowdown(job_dict)
     if opts.wait:
         show_wait(job_dict)
+    if opts.slowdown:
+        show_slowdown(job_dict)
+    if opts.uwait:
+        show_uwait(job_dict)
     
 #print color_bars
     if opts.alloc:
