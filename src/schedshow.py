@@ -426,8 +426,16 @@ def show_resp(job_dict):
     print '\r'
     print "%s\t%s\t%s\t%s\t%s\t%s\t%s" \
      % (average, maximum, percentile_99, percentile_90, percentile_80, median, minimum)
-    print '\n'    
+        
+    print average
+    print maximum
+    print percentile_99
+    print percentile_90
+    print percentile_80
+    print median
+    print minimum 
     
+    print '\n'
     
 def show_wait(job_dict):
     '''calculate waiting time'''
@@ -465,7 +473,8 @@ def show_wait(job_dict):
     print '\r'
     print "%s\t%s\t%s\t%s\t%s\t%s\t%s" \
 	 % (average, maximum, percentile_99, percentile_90, percentile_80, median, minimum)
-    print '\n'   
+        
+    print '\n'
 
 def show_slowdown(job_dict):
     '''calculate slowdown'''
@@ -497,6 +506,40 @@ def show_slowdown(job_dict):
     print '\r'
     print "%s\t%s\t%s\t%s\t%s\t%s\t%s" \
 	 % (average, maximum, percentile_99, percentile_90, percentile_80, median, minimum)
+
+    print '\n'
+    
+def show_slowdown_alt(job_dict):
+    '''calculate slowdown'''
+    li = []
+    total = 0.0
+    for k, v in job_dict.iteritems():
+        temp1 = float(v["start"]) - float(v["qtime"])
+        temp2 = float(v["end"]) - float(v["start"])
+        temp = (temp1) / temp2
+        total += temp
+        li.append(round(temp, 1))
+    
+    for item in li:
+        total += item
+    average = round(total/float(len(li)), 2)
+    li.sort()
+    maximum = li[len(li)-1]
+    median = li[len(li)/2]
+    index = int(len(li) * 0.99)
+    percentile_99 = li[index]
+    index = int(len(li) * 0.90)
+    percentile_90 = li[index]
+    index = int(len(li) * 0.80)
+    percentile_80 = li[index]
+    minimum = li[0]
+
+    print "slowdown_alt"
+    print_header()
+    print '\r'
+    print "%s\t%s\t%s\t%s\t%s\t%s\t%s" \
+	 % (average, maximum, percentile_99, percentile_90, percentile_80, median, minimum)
+  
     print '\n' 
 
 def show_uwait(job_dict):
@@ -527,7 +570,8 @@ def show_uwait(job_dict):
     print '\r'
     print "%s\t%s\t%s\t%s\t%s\t%s\t%s" % \
 	 (average, maximum, percentile_99, percentile_90, percentile_80, median, minimum)
-    print '\n' 
+    
+    print '\n'
 
 if __name__ == "__main__":
     p = OptionParser()
@@ -596,6 +640,7 @@ if __name__ == "__main__":
         show_wait(job_dict)
     if opts.slowdown:
         show_slowdown(job_dict)
+        show_slowdown_alt(job_dict)
     if opts.uwait:
         show_uwait(job_dict)
     
