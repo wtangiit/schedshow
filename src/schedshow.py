@@ -391,17 +391,25 @@ def draw_sys_util(job_dict, min_start, max_end, savefile=None):
     
     if SHOW:
         plt.show()
+        
+metric_header = ["Avg", "Max", "99th", "90th", "80th", "Median", "Min"]
 
+def print_header():
+	for item in metric_header:
+		print item, '\t',
+		
 def show_resp(job_dict):
     '''calculate response time'''
     li = []
-    for k, v in job_dict.iteritems():
-        temp = float(v["end"])-float(v["qtime"])
-        li.append(temp)
+    
     total = 0.0
-    for item in li:
-        total += item
-    average = total/float(len(li))
+    for k, v in job_dict.iteritems():
+        temp  = (float(v["end"])-float(v["qtime"])) / 60
+        total += temp
+        li.append(round(temp, 1))
+    
+    average = round(total/float(len(li)), 2)
+
     li.sort()
     maximum = li[len(li)-1]
     median = li[len(li)/2]
@@ -412,26 +420,26 @@ def show_resp(job_dict):
     index = int(len(li) * 0.80)
     percentile_80 = li[index]
     minimum = li[0]
-    print "Resp time: Seconds (HMS)"
-    print "average: %s (%s)" % (int(average), getInHMS(average))
-    print "maximum: %s (%s)" % (int(maximum), getInHMS(maximum))
-    print "99th percentile: %s (%s)" % (int(percentile_99), getInHMS(percentile_99))
-    print "90th percentile: %s (%s)" % (int(percentile_90), getInHMS(percentile_90))
-    print "80th percentile: %s (%s)" % (int(percentile_80), getInHMS(percentile_80))
-    print "median: %s (%s)" % (int(median), getInHMS(median))
-    print "minimum: %s (%s)" % (int(minimum), getInHMS(minimum))
-    print "\n"
+
+    print "Resp time (min)"
+    print_header()
+    print '\r'
+    print "%s\t%s\t%s\t%s\t%s\t%s\t%s" \
+     % (average, maximum, percentile_99, percentile_90, percentile_80, median, minimum)
+    print '\n'    
+    
     
 def show_wait(job_dict):
     '''calculate waiting time'''
     li = []
-    for k, v in job_dict.iteritems():
-        temp = float(v["start"]) - float(v["qtime"])
-        li.append(temp)
     total = 0.0
-    for item in li:
-        total += item
-    average = total/float(len(li))
+    for k, v in job_dict.iteritems():
+        temp = (float(v["start"]) - float(v["qtime"])) / 60
+        total += temp
+        li.append(round(temp, 1))
+
+    average = round(total/float(len(li)), 2)
+    
     li.sort()
     maximum = li[len(li)-1]
     median = li[len(li)/2]
@@ -442,28 +450,37 @@ def show_wait(job_dict):
     index = int(len(li) * 0.80)
     percentile_80 = li[index]
     minimum = li[0]
-    print "Wait time: Seconds (HMS)"
-    print "average: %s (%s)" % (int(average), getInHMS(average))
-    print "maximum: %s (%s)" % (int(maximum), getInHMS(maximum))
-    print "99th percentile: %s (%s)" % (int(percentile_99), getInHMS(percentile_99))
-    print "90th percentile: %s (%s)" % (int(percentile_90), getInHMS(percentile_90))
-    print "80th percentile: %s (%s)" % (int(percentile_80), getInHMS(percentile_80))
-    print "median: %s (%s)" % (int(median), getInHMS(median))
-    print "minimum: %s (%s)" % (int(minimum), getInHMS(minimum))
-    print "\n"
+#    print "Wait time: Seconds (HMS)"
+#    print "average: %s (%s)" % (int(average), getInHMS(average))
+#    print "maximum: %s (%s)" % (int(maximum), getInHMS(maximum))
+#    print "99th percentile: %s (%s)" % (int(percentile_99), getInHMS(percentile_99))
+#    print "90th percentile: %s (%s)" % (int(percentile_90), getInHMS(percentile_90))
+#    print "80th percentile: %s (%s)" % (int(percentile_80), getInHMS(percentile_80))
+#    print "median: %s (%s)" % (int(median), getInHMS(median))
+#    print "minimum: %s (%s)" % (int(minimum), getInHMS(minimum))
+#    print "\n"
+    
+    print "Wait time (min)"
+    print_header()
+    print '\r'
+    print "%s\t%s\t%s\t%s\t%s\t%s\t%s" \
+	 % (average, maximum, percentile_99, percentile_90, percentile_80, median, minimum)
+    print '\n'   
 
 def show_slowdown(job_dict):
     '''calculate slowdown'''
     li = []
+    total = 0.0
     for k, v in job_dict.iteritems():
         temp1 = float(v["start"]) - float(v["qtime"])
         temp2 = float(v["end"]) - float(v["start"])
         temp = (temp1 + temp2) / temp2
-        li.append(temp)
-    total = 0.0
+        total += temp
+        li.append(round(temp, 1))
+    
     for item in li:
         total += item
-    average = total/float(len(li))
+    average = round(total/float(len(li)), 2)
     li.sort()
     maximum = li[len(li)-1]
     median = li[len(li)/2]
@@ -474,28 +491,26 @@ def show_slowdown(job_dict):
     index = int(len(li) * 0.80)
     percentile_80 = li[index]
     minimum = li[0]
-    print "Bounded Slowdown"
-    print "average:\t", average
-    print "maximum:\t", maximum
-    print "99th percentile:\t", percentile_99
-    print "90th percentile:\t", percentile_90
-    print "80th percentile:\t", percentile_80
-    print "median:\t", median
-    print "minimum:\t", minimum
-    print "\n"
+
+    print "slowdown"
+    print_header()
+    print '\r'
+    print "%s\t%s\t%s\t%s\t%s\t%s\t%s" \
+	 % (average, maximum, percentile_99, percentile_90, percentile_80, median, minimum)
+    print '\n' 
 
 def show_uwait(job_dict):
     '''calculate unitless wait'''
     li = []
+    total = 0.0
     for k, v in job_dict.iteritems():
         wait = float(v["start"]) - float(v["qtime"])
         walltime_sec = 60 * float(v['walltime'])
         uwait = wait / walltime_sec
-        li.append(uwait)
-    total = 0.0
-    for item in li:
-        total += item
-    average = total/float(len(li))
+        total += uwait
+        li.append(round(uwait,1))
+    
+    average = round(total/float(len(li)), 2)
     li.sort()
     maximum = li[len(li)-1]
     median = li[len(li)/2]
@@ -506,15 +521,13 @@ def show_uwait(job_dict):
     index = int(len(li) * 0.80)
     percentile_80 = li[index]
     minimum = li[0]
-    print "Unitless Wait"
-    print "average:\t", average
-    print "maximum:\t", maximum
-    print "99th percentile:\t", percentile_99
-    print "90th percentile:\t", percentile_90
-    print "80th percentile:\t", percentile_80
-    print "median:\t", median
-    print "minimum:\t", minimum
-    print "\n"
+    
+    print "unitelss wait"
+    print_header()
+    print '\r'
+    print "%s\t%s\t%s\t%s\t%s\t%s\t%s" % \
+	 (average, maximum, percentile_99, percentile_90, percentile_80, median, minimum)
+    print '\n' 
 
 if __name__ == "__main__":
     p = OptionParser()
@@ -532,6 +545,8 @@ if __name__ == "__main__":
     p.add_option("-r", dest="response", action="store_true", \
 		    default=False, \
                     help="print response time to terminal")
+    p.add_option("-m", "--metrics", action="store_true", \
+			default=False, help="print statistics of all metrics")    
     p.add_option("-b", dest="slowdown", action="store_true", \
 		    default=False, \
                     help="print bounded slowdown to terminal")
@@ -558,6 +573,9 @@ if __name__ == "__main__":
     if opts.run_all:
         opts.alloc = opts.jobs = opts.nodes = opts.response = opts.slowdown = opts.wait = opts.uwait = True
         
+    if opts.metrics:
+    	opts.response = opts.slowdown = opts.wait = opts.uwait = True
+        
     if opts.savefile:
         savefile = opts.savefile
     else:
@@ -570,7 +588,7 @@ if __name__ == "__main__":
         
     (job_dict, first_submit, first_start, last_end)=parseLogFile(opts.logfile)
 
-    print "number of jobs:", len(job_dict.keys())
+    print "number of jobs:", len(job_dict.keys()), '\n'
     
     if opts.response:
         show_resp(job_dict)
