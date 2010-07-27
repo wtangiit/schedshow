@@ -12,12 +12,12 @@ from optparse import OptionParser
 class Rect:
 
     #constructor
-    def __init__(self,p1,p2,p3,p4,color): 
-        self.p1=p1
-        self.p2=p2
-        self.p3=p3
-        self.p4=p4
-        self.color=color
+    def __init__(self, p1, p2, p3, p4, color): 
+        self.p1 = p1
+        self.p2 = p2
+        self.p3 = p3
+        self.p4 = p4
+        self.color = color
     #get_Methods
     def get1(self):
         return self.p1
@@ -33,40 +33,45 @@ class Rect:
 
 # Second Part Start:
 
-l=[]  # a list contains all the rectangles.
-colorList=['b','g','r','c','m','y','gray']  # 7 color are used here
+l = []  # a list contains all the rectangles.
+colorList = ['b', 'g', 'r', 'c', 'm', 'y', 'gray']  # 7 color are used here
 
-def add(a1,a2,a3,a4,color):
-    temp=Rect(a1,a2,a3,a4,color) 
+def add(a1, a2, a3, a4, color):
+    temp=Rect(a1, a2, a3, a4, color) 
     l.append(temp)  
 
-def getColor(t1,t2,t3,t4,thresholdx,thresholdy):   #test the point and return a color    
-    tempColor=[]
-    tempColor=colorList[:]
-    if len(l)==0:
+def getColor(t1, t2, t3, t4, thresholdx, thresholdy):    
+    '''test the point and return a color'''
+    tempColor = []
+    tempColor = colorList[:]
+    if len(l) == 0:
         return random.choice(tempColor)
     else:
         for i in range(0,len(l)):
-            if abs( t3-l[i].get3() )<=thresholdx and abs( t4-l[i].get4() )<=thresholdx and abs( t1-l[i].get2() )<=thresholdy: 
+            if abs(t3-l[i].get3()) <= thresholdx and \
+             abs(t4-l[i].get4()) <= thresholdx and  \
+             abs(t1-l[i].get2()) <= thresholdy: 
  		#print '!!!!!!!!! shang'   
                 if l[i].getColor() in tempColor:
                     tempColor.remove(l[i].getColor())
-            if abs( t3-l[i].get3() )<=thresholdx and abs( t4-l[i].get4() )<=thresholdx and abs( t2-l[i].get1() )<=thresholdy:
+            if abs(t3-l[i].get3()) <= thresholdx and \
+            abs(t4-l[i].get4()) <= thresholdx and \
+            abs(t2-l[i].get1()) <= thresholdy:
  		#print '!!!!!!!!! xia'   
                 if l[i].getColor() in tempColor:
                     tempColor.remove(l[i].getColor())
-            if abs( t1-l[i].get1() )<=thresholdy and abs( t2-l[i].get2() )<=thresholdy and abs( t4-l[i].get3() )<=thresholdx:
+            if abs(t1-l[i].get1()) <= thresholdy and \
+            abs( t2-l[i].get2()) <= thresholdy and \
+            abs(t4-l[i].get3()) <= thresholdx:
  		#print '!!!!!!!!!! you'   
                 if l[i].getColor() in tempColor:
                     tempColor.remove(l[i].getColor())
-            if abs( t1-l[i].get1() )<=thresholdy and abs( t2-l[i].get2() )<=thresholdy and abs( t3-l[i].get4() )<=thresholdx:
- 		#print '!!!!!!!!!! zuo'  
-                #print ' the zuo color is',l[i].getColor() 
-                if l[i].getColor() in tempColor:
-                    tempColor.remove(l[i].getColor())
-                #print 'tempColorlist is ',tempColor
+            if abs( t1-l[i].get1() ) <= thresholdy and \
+            abs(t2-l[i].get2()) <= thresholdy and \
+            abs(t3-l[i].get4()) <= thresholdx:
+ 		        if l[i].getColor() in tempColor:
+ 		        	tempColor.remove(l[i].getColor())
     return random.choice(tempColor)
-
 
 SHOW = False
 
@@ -85,7 +90,7 @@ def get_width(line_data_dictionary):
     # Following is converting them to x1 & y1 which are in "80" form
 
     if len(y) == 1:   # This is for case 2: which y=one_digit_number.
-        x1 = 16*int(x[0:1]) + 2 * int(x[1:2]) + int(y) + 1
+        x1 = 16 * int(x[0:1]) + 2 * int(x[1:2]) + int(y) + 1
         y1 = x1 + 1
     else:                # For case 1 & 3:
         x1 = 16 * int(x[0:1]) + 2 * int(x[1:2])
@@ -276,8 +281,8 @@ def draw_live_jobs(job_dict, min_start, max_end, savefile=None):
     maxwait = 0
     for i in range(0, 2000):
         wait_number = 0
-        for k, v in job_dict.iteritems():
-            if float(v["qtime"]) < timepoint and timepoint < float(v["start"]):
+        for k, spec in job_dict.iteritems():
+            if float(spec["qtime"]) < timepoint and timepoint < float(spec["start"]):
                 wait_number = wait_number+1
         if wait_number > maxwait:
             maxwait = wait_number
@@ -329,9 +334,9 @@ def draw_sys_util(job_dict, min_start, max_end, savefile=None):
     maxjobnode = 0
     for i in range(0, 2000):
         job_node = 0
-        for k, v in job_dict.iteritems():
-            if float(v["start"]) < timepoint and timepoint < float(v["end"]):
-                job_node = job_node + int(v["Resource_List.nodect"])
+        for k, spec in job_dict.iteritems():
+            if float(spec["start"]) < timepoint and timepoint < float(spec["end"]):
+                job_node = job_node + int(spec["Resource_List.nodect"])
         if job_node > maxjobnode:
             maxjobnode = job_node
         job_nodes.append(job_node)
@@ -351,9 +356,9 @@ def draw_sys_util(job_dict, min_start, max_end, savefile=None):
     maxwaitnode = 0
     for i in range(0, 2000):
         wait_node = 0
-        for k, v in job_dict.iteritems():
-            if float(v["qtime"]) < timepoint and timepoint < float(v["start"]):
-                wait_node = wait_node + int(v["Resource_List.nodect"])
+        for k, spec in job_dict.iteritems():
+            if float(spec["qtime"]) < timepoint and timepoint < float(spec["start"]):
+                wait_node = wait_node + int(spec["Resource_List.nodect"])
         if wait_node > maxwaitnode:
             maxwaitnode = wait_node
         wait_nodes.append(wait_node)
@@ -395,181 +400,169 @@ def draw_sys_util(job_dict, min_start, max_end, savefile=None):
 metric_header = ["Avg", "Max", "99th", "90th", "80th", "Median", "Min"]
 
 def print_header():
-	for item in metric_header:
+    for item in metric_header:
 		print item, '\t',
 		
 def show_resp(job_dict):
     '''calculate response time'''
-    li = []
+    value_list = []
     
     total = 0.0
-    for k, v in job_dict.iteritems():
-        temp  = (float(v["end"])-float(v["qtime"])) / 60
+    for k, spec in job_dict.iteritems():
+        temp  = (float(spec["end"])-float(spec["qtime"])) / 60
         total += temp
-        li.append(round(temp, 1))
+        value_list.append(round(temp, 1))
     
-    average = round(total/float(len(li)), 2)
+    average = round(total/float(len(value_list)), 2)
 
-    li.sort()
-    maximum = li[len(li)-1]
-    median = li[len(li)/2]
-    index = int(len(li) * 0.99)
-    percentile_99 = li[index]
-    index = int(len(li) * 0.90)
-    percentile_90 = li[index]
-    index = int(len(li) * 0.80)
-    percentile_80 = li[index]
-    minimum = li[0]
+    value_list.sort()
+    maximum = value_list[len(value_list)-1]
+    median = value_list[len(value_list)/2]
+    index = int(len(value_list) * 0.99)
+    percentile_99 = value_list[index]
+    index = int(len(value_list) * 0.90)
+    percentile_90 = value_list[index]
+    index = int(len(value_list) * 0.80)
+    percentile_80 = value_list[index]
+    minimum = value_list[0]
 
     print "Resp time (min)"
     print_header()
     print '\r'
     print "%s\t%s\t%s\t%s\t%s\t%s\t%s" \
-     % (average, maximum, percentile_99, percentile_90, percentile_80, median, minimum)
-        
-    print average
-    print maximum
-    print percentile_99
-    print percentile_90
-    print percentile_80
-    print median
-    print minimum 
-    
+     % (average, maximum, percentile_99, \
+	percentile_90, percentile_80, median, minimum)
+
     print '\n'
     
 def show_wait(job_dict):
     '''calculate waiting time'''
-    li = []
+    value_list = []
     total = 0.0
-    for k, v in job_dict.iteritems():
-        temp = (float(v["start"]) - float(v["qtime"])) / 60
+    for k, spec in job_dict.iteritems():
+        temp = (float(spec["start"]) - float(spec["qtime"])) / 60
         total += temp
-        li.append(round(temp, 1))
+        value_list.append(round(temp, 1))
 
-    average = round(total/float(len(li)), 2)
+    average = round(total/float(len(value_list)), 2)
     
-    li.sort()
-    maximum = li[len(li)-1]
-    median = li[len(li)/2]
-    index = int(len(li) * 0.99)
-    percentile_99 = li[index]
-    index = int(len(li) * 0.90)
-    percentile_90 = li[index]
-    index = int(len(li) * 0.80)
-    percentile_80 = li[index]
-    minimum = li[0]
-#    print "Wait time: Seconds (HMS)"
-#    print "average: %s (%s)" % (int(average), getInHMS(average))
-#    print "maximum: %s (%s)" % (int(maximum), getInHMS(maximum))
-#    print "99th percentile: %s (%s)" % (int(percentile_99), getInHMS(percentile_99))
-#    print "90th percentile: %s (%s)" % (int(percentile_90), getInHMS(percentile_90))
-#    print "80th percentile: %s (%s)" % (int(percentile_80), getInHMS(percentile_80))
-#    print "median: %s (%s)" % (int(median), getInHMS(median))
-#    print "minimum: %s (%s)" % (int(minimum), getInHMS(minimum))
-#    print "\n"
-    
+    value_list.sort()
+    maximum = value_list[len(value_list)-1]
+    median = value_list[len(value_list)/2]
+    index = int(len(value_list) * 0.99)
+    percentile_99 = value_list[index]
+    index = int(len(value_list) * 0.90)
+    percentile_90 = value_list[index]
+    index = int(len(value_list) * 0.80)
+    percentile_80 = value_list[index]
+    minimum = value_list[0]
+
     print "Wait time (min)"
     print_header()
     print '\r'
     print "%s\t%s\t%s\t%s\t%s\t%s\t%s" \
-	 % (average, maximum, percentile_99, percentile_90, percentile_80, median, minimum)
+	 % (average, maximum, percentile_99, \
+	percentile_90, percentile_80, median, minimum)
         
     print '\n'
 
 def show_slowdown(job_dict):
     '''calculate slowdown'''
-    li = []
+    value_list = []
     total = 0.0
-    for k, v in job_dict.iteritems():
-        temp1 = float(v["start"]) - float(v["qtime"])
-        temp2 = float(v["end"]) - float(v["start"])
+    for k, spec in job_dict.iteritems():
+        temp1 = float(spec["start"]) - float(spec["qtime"])
+        temp2 = float(spec["end"]) - float(spec["start"])
         temp = (temp1 + temp2) / temp2
         total += temp
-        li.append(round(temp, 1))
+        value_list.append(round(temp, 1))
     
-    for item in li:
+    for item in value_list:
         total += item
-    average = round(total/float(len(li)), 2)
-    li.sort()
-    maximum = li[len(li)-1]
-    median = li[len(li)/2]
-    index = int(len(li) * 0.99)
-    percentile_99 = li[index]
-    index = int(len(li) * 0.90)
-    percentile_90 = li[index]
-    index = int(len(li) * 0.80)
-    percentile_80 = li[index]
-    minimum = li[0]
+    average = round(total/float(len(value_list)), 2)
+    value_list.sort()
+    maximum = value_list[len(value_list)-1]
+    median = value_list[len(value_list)/2]
+    index = int(len(value_list) * 0.99)
+    percentile_99 = value_list[index]
+    index = int(len(value_list) * 0.90)
+    percentile_90 = value_list[index]
+    index = int(len(value_list) * 0.80)
+    percentile_80 = value_list[index]
+    minimum = value_list[0]
 
     print "slowdown"
     print_header()
     print '\r'
     print "%s\t%s\t%s\t%s\t%s\t%s\t%s" \
-	 % (average, maximum, percentile_99, percentile_90, percentile_80, median, minimum)
+	 % (average, maximum, percentile_99, \
+	percentile_90, percentile_80, median, minimum)
 
     print '\n'
     
 def show_slowdown_alt(job_dict):
     '''calculate slowdown'''
-    li = []
+    value_list = []
     total = 0.0
-    for k, v in job_dict.iteritems():
-        temp1 = float(v["start"]) - float(v["qtime"])
-        temp2 = float(v["end"]) - float(v["start"])
+    for k, spec in job_dict.iteritems():
+        temp1 = float(spec["start"]) - float(spec["qtime"])
+        temp2 = float(spec["end"]) - float(spec["start"])
         temp = (temp1) / temp2
         total += temp
-        li.append(round(temp, 1))
+        value_list.append(round(temp, 1))
     
-    for item in li:
+    for item in value_list:
         total += item
-    average = round(total/float(len(li)), 2)
-    li.sort()
-    maximum = li[len(li)-1]
-    median = li[len(li)/2]
-    index = int(len(li) * 0.99)
-    percentile_99 = li[index]
-    index = int(len(li) * 0.90)
-    percentile_90 = li[index]
-    index = int(len(li) * 0.80)
-    percentile_80 = li[index]
-    minimum = li[0]
+    average = round(total/float(len(value_list)), 2)
+    value_list.sort()
+    maximum = value_list[len(value_list)-1]
+    median = value_list[len(value_list)/2]
+    index = int(len(value_list) * 0.99)
+    percentile_99 = value_list[index]
+    index = int(len(value_list) * 0.90)
+    percentile_90 = value_list[index]
+    index = int(len(value_list) * 0.80)
+    percentile_80 = value_list[index]
+    minimum = value_list[0]
 
     print "slowdown_alt"
     print_header()
     print '\r'
     print "%s\t%s\t%s\t%s\t%s\t%s\t%s" \
-	 % (average, maximum, percentile_99, percentile_90, percentile_80, median, minimum)
+	 % (average, maximum, percentile_99, \
+	percentile_90, percentile_80, median, minimum)
   
     print '\n' 
 
 def show_uwait(job_dict):
     '''calculate unitless wait'''
-    li = []
+    value_list = []
     total = 0.0
-    for k, v in job_dict.iteritems():
-        wait = float(v["start"]) - float(v["qtime"])
-        walltime_sec = 60 * float(v['walltime'])
+    for k, spec in job_dict.iteritems():
+        wait = float(spec["start"]) - float(spec["qtime"])
+        walltime_sec = 60 * float(spec['walltime'])
         uwait = wait / walltime_sec
         total += uwait
-        li.append(round(uwait,1))
+        value_list.append(round(uwait, 1))
     
-    average = round(total/float(len(li)), 2)
-    li.sort()
-    maximum = li[len(li)-1]
-    median = li[len(li)/2]
-    index = int(len(li) * 0.99)
-    percentile_99 = li[index]
-    index = int(len(li) * 0.90)
-    percentile_90 = li[index]
-    index = int(len(li) * 0.80)
-    percentile_80 = li[index]
-    minimum = li[0]
+    average = round(total/float(len(value_list)), 2)
+    value_list.sort()
+    maximum = value_list[len(value_list)-1]
+    median = value_list[len(value_list)/2]
+    index = int(len(value_list) * 0.99)
+    percentile_99 = value_list[index]
+    index = int(len(value_list) * 0.90)
+    percentile_90 = value_list[index]
+    index = int(len(value_list) * 0.80)
+    percentile_80 = value_list[index]
+    minimum = value_list[0]
     
     print "unitelss wait"
     print_header()
     print '\r'
     print "%s\t%s\t%s\t%s\t%s\t%s\t%s" % \
-	 (average, maximum, percentile_99, percentile_90, percentile_80, median, minimum)
+	 (average, maximum, percentile_99, \
+	percentile_90, percentile_80, median, minimum)
     
     print '\n'
 
@@ -621,9 +614,9 @@ if __name__ == "__main__":
     	opts.response = opts.slowdown = opts.wait = opts.uwait = True
         
     if opts.savefile:
-        savefile = opts.savefile
+        savefilename = opts.savefile
     else:
-        savefile = "schedshow"
+        savefilename = "schedshow"
         
     if opts.show:
         SHOW = True
@@ -646,15 +639,13 @@ if __name__ == "__main__":
     
 #print color_bars
     if opts.alloc:
-        draw_job_allocation(job_dict, first_submit, last_end, savefile)
+        draw_job_allocation(job_dict, first_submit, last_end, savefilename)
 #print running & waiting jobs
     if opts.jobs:
-        draw_live_jobs(job_dict, first_submit, last_end, savefile)
+        draw_live_jobs(job_dict, first_submit, last_end, savefilename)
 #-n print running & waiting nodes
     if opts.nodes:
-        draw_sys_util(job_dict, first_submit, last_end, savefile)
-
-
+        draw_sys_util(job_dict, first_submit, last_end, savefilename)
 
     endtime_sec = time.time()
     print "---Analysis and plotting are finished, \
