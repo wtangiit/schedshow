@@ -565,6 +565,30 @@ def show_uwait(job_dict):
 	percentile_90, percentile_80, median, minimum)
     
     print '\n'
+    
+def calculate_sys_util(job_dict, total_sec):
+    '''calculate sys util'''
+    value_list = []
+    total = 0.0
+    busy_node_sec = 0
+    for k, spec in job_dict.iteritems():
+        runtime = float(spec["end"]) - float(spec["start"])
+        host = spec["exec_host"]
+        if host[0] == 'A': #intrepid
+        	nodes = int(host.split("-")[-1])
+        	total_nodes = 40960
+        elif host[0] == 'n':
+        	nodes = len(host.split(':'))
+        	total_nodes = 100
+        node_sec = nodes * runtime
+        #print "jobid=%s, nodes=%s, runtime=%s, location=%s" % (spec['jobid'], nodes, runtime, spec['exec_host'])
+        busy_node_sec += node_sec
+        
+    sysutil = busy_node_sec / (total_sec * total_nodes)
+    
+    print "system utilization rate = ", sysutil
+    
+    print '\n'
 
 if __name__ == "__main__":
     p = OptionParser()
@@ -636,6 +660,8 @@ if __name__ == "__main__":
         show_slowdown_alt(job_dict)
     if opts.uwait:
         show_uwait(job_dict)
+    if opts.metrics:
+    	calculate_sys_util(job_dict, last_end - first_submit)
     
 #print color_bars
     if opts.alloc:
