@@ -194,22 +194,24 @@ def draw_job_allocation(job_dict, min_start, max_end, savefile=None):
         width = get_width(v)
         x = width[0]
         y = width[1]
-    #print v["exec_host"]," ",x,"-",y,":",y-x   # this is for test
         #width[0]:x   start point on y-axes
         #width[1]:y   end point on y-axes
         threshold_x = (end-start) / 40.0
         threshold_y = 0
         current_color = get_color(y, x, start, end, threshold_x, threshold_y)
         add_rect(y, x, start, end, current_color)
-        
-        #for i in range(x,y):    # old method of plotting.
-        #    ax.broken_barh([(start,end-start)],(i,1),facecolor=currentColor)
         ax.barh(x, end-start, y-x, start, facecolor=current_color)
     
-    yticks = [0, 15, 16, 31, 32, 47, 48, 63, 64, 80]
+    labels = []
+    yticks = []
+    for i in range(0, 80):
+        yticks.append(i)
     ax.set_yticks(yticks)
-    ax.set_yticklabels(['R00', 'R07', 'R10', 'R17', 'R20', 'R27', 'R30', \
-		    'R37', 'R40', 'R47'], fontsize=6)
+    for i in range(0,5):
+	for j in range(0,8):
+	    labels.append("R" + str(i) + str(j))
+	    labels.append("")
+    ax.set_yticklabels(labels, fontsize=12)
     ax.set_ylim(0, 80)
     
     inteval = time_total / 10
@@ -218,13 +220,13 @@ def draw_job_allocation(job_dict, min_start, max_end, savefile=None):
     temptime = min_start
     for i in range(0, 11):
         timelist.append(temptime)
-        temptime = temptime+inteval
+        temptime = temptime + inteval
     for i in range(0, 11):
-        labels.append(time.asctime(time.localtime(timelist[i])))
+	labels.append(time.asctime(time.localtime(timelist[i]))[4:-4])
     ax.set_xticks(timelist)
-    ax.set_xticklabels(labels, fontsize = 6)
+    ax.set_xticklabels(labels, rotation=30, fontsize = 12)
     ax.set_xlim(min_start , max_end)
-    ax.set_xlabel('Time')
+    ax.set_xlabel('Time',fontsize=15)
     
     ax.grid(True)
     
