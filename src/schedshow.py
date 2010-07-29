@@ -10,68 +10,60 @@ import matplotlib.pyplot as plt
 from optparse import OptionParser
 
 class Rect:
-
-    #constructor
-    def __init__(self, p1, p2, p3, p4, color): 
-        self.p1 = p1
-        self.p2 = p2
-        self.p3 = p3
-        self.p4 = p4
+    def __init__(self, p_1, p_2, p_3, p_4, color): 
+    #""" default constructor """
+        self.p_1 = p_1
+        self.p_2 = p_2
+        self.p_3 = p_3
+        self.p_4 = p_4
         self.color = color
-    #get_Methods
-    def get1(self):
-        return self.p1
-    def get2(self):
-        return self.p2
-    def get3(self):
-        return self.p3
-    def get4(self):
-        return self.p4
-    def getColor(self):
+    def get_1(self):
+    #""" get point 1 of the rect"""
+        return self.p_1
+    def get_2(self):
+    #""" get point 2 of the rect"""
+        return self.p_2
+    def get_3(self):
+    #""" get point 3 of the rect"""
+        return self.p_3
+    def get_4(self):
+    #""" get point 4 of the rect"""
+        return self.p_4
+    def get_color(self):
+    #""" get color of the rect"""
         return self.color
 # End of Class
 
-# Second Part Start:
 
-l = []  # a list contains all the rectangles.
-colorList = ['b', 'g', 'r', 'c', 'm', 'y', 'gray']  # 7 color are used here
+rec_list = []  # a list contains all the rectangles.
+color_list = ['b', 'g', 'r', 'c', 'm', 'y', 'gray']  # 7 color are used here
 
-def add(a1, a2, a3, a4, color):
-    temp=Rect(a1, a2, a3, a4, color) 
-    l.append(temp)  
+def add_rect(a_1, a_2, a_3, a_4, color):
+    """ add an rect to rec_list """
+    temp = Rect(a_1, a_2, a_3, a_4, color) 
+    rec_list.append(temp)  
 
-def getColor(t1, t2, t3, t4, thresholdx, thresholdy):    
-    '''test the point and return a color'''
-    tempColor = []
-    tempColor = colorList[:]
-    if len(l) == 0:
-        return random.choice(tempColor)
+def get_color(t_1, t_2, t_3, t_4, thresholdx, thresholdy):  
+    """test the point and return a color"""    
+    temp_color = []
+    temp_color = color_list[:]
+    if len(rec_list) == 0:
+        return random.choice(temp_color)
     else:
-        for i in range(0,len(l)):
-            if abs(t3-l[i].get3()) <= thresholdx and \
-             abs(t4-l[i].get4()) <= thresholdx and  \
-             abs(t1-l[i].get2()) <= thresholdy: 
- 		#print '!!!!!!!!! shang'   
-                if l[i].getColor() in tempColor:
-                    tempColor.remove(l[i].getColor())
-            if abs(t3-l[i].get3()) <= thresholdx and \
-            abs(t4-l[i].get4()) <= thresholdx and \
-            abs(t2-l[i].get1()) <= thresholdy:
- 		#print '!!!!!!!!! xia'   
-                if l[i].getColor() in tempColor:
-                    tempColor.remove(l[i].getColor())
-            if abs(t1-l[i].get1()) <= thresholdy and \
-            abs( t2-l[i].get2()) <= thresholdy and \
-            abs(t4-l[i].get3()) <= thresholdx:
- 		#print '!!!!!!!!!! you'   
-                if l[i].getColor() in tempColor:
-                    tempColor.remove(l[i].getColor())
-            if abs( t1-l[i].get1() ) <= thresholdy and \
-            abs(t2-l[i].get2()) <= thresholdy and \
-            abs(t3-l[i].get4()) <= thresholdx:
- 		        if l[i].getColor() in tempColor:
- 		        	tempColor.remove(l[i].getColor())
-    return random.choice(tempColor)
+        for i in range(0, len(rec_list)):
+            if abs(t_3-rec_list[i].get_3()) <= thresholdx and abs(t_4-rec_list[i].get_4()) <= thresholdx and abs(t_1-rec_list[i].get_2()) <= thresholdy: 
+                if rec_list[i].get_color() in temp_color:
+                    temp_color.remove(rec_list[i].get_color())
+            if abs(t_3-rec_list[i].get_3()) <= thresholdx and abs(t_4-rec_list[i].get_4()) <= thresholdx and abs(t_2-rec_list[i].get_1()) <= thresholdy:
+                if rec_list[i].get_color() in temp_color:
+                    temp_color.remove(rec_list[i].get_color())
+            if abs(t_1-rec_list[i].get_1()) <= thresholdy and abs(t_2-rec_list[i].get_2()) <= thresholdy and abs(t_4-rec_list[i].get_3()) <= thresholdx:
+                if rec_list[i].get_color() in temp_color:
+                    temp_color.remove(rec_list[i].get_color())
+            if abs(t_1-rec_list[i].get_1()) <= thresholdy and abs(t_2-rec_list[i].get_2()) <= thresholdy and abs(t_3-rec_list[i].get_4()) <= thresholdx:
+                if rec_list[i].get_color() in temp_color:
+                    temp_color.remove(rec_list[i].get_color())
+    return random.choice(temp_color)
 
 SHOW = False
 
@@ -207,12 +199,12 @@ def draw_job_allocation(job_dict, min_start, max_end, savefile=None):
         #width[1]:y   end point on y-axes
         threshold_x = (end-start) / 40.0
         threshold_y = 0
-        currentColor = getColor(y, x, start, end, threshold_x, threshold_y)
-        add(y, x, start, end, currentColor)
+        current_color = get_color(y, x, start, end, threshold_x, threshold_y)
+        add_rect(y, x, start, end, current_color)
         
         #for i in range(x,y):    # old method of plotting.
         #    ax.broken_barh([(start,end-start)],(i,1),facecolor=currentColor)
-        ax.barh(x, end-start, y-x, start, facecolor=currentColor)
+        ax.barh(x, end-start, y-x, start, facecolor=current_color)
     
     yticks = [0, 15, 16, 31, 32, 47, 48, 63, 64, 80]
     ax.set_yticks(yticks)
@@ -401,7 +393,7 @@ metric_header = ["Avg", "Max", "99th", "90th", "80th", "Median", "Min"]
 
 def print_header():
     for item in metric_header:
-		print item, '\t',
+	print item, '\t',
 		
 def show_resp(job_dict):
     '''calculate response time'''
@@ -575,11 +567,11 @@ def calculate_sys_util(job_dict, total_sec):
         runtime = float(spec["end"]) - float(spec["start"])
         host = spec["exec_host"]
         if host[0] == 'A': #intrepid
-        	nodes = int(host.split("-")[-1])
-        	total_nodes = 40960
+            nodes = int(host.split("-")[-1])
+            total_nodes = 40960
         elif host[0] == 'n':
-        	nodes = len(host.split(':'))
-        	total_nodes = 100
+            nodes = len(host.split(':'))
+            total_nodes = 100
         node_sec = nodes * runtime
         #print "jobid=%s, nodes=%s, runtime=%s, location=%s" % (spec['jobid'], nodes, runtime, spec['exec_host'])
         busy_node_sec += node_sec
@@ -635,7 +627,7 @@ if __name__ == "__main__":
         opts.alloc = opts.jobs = opts.nodes = opts.response = opts.slowdown = opts.wait = opts.uwait = True
         
     if opts.metrics:
-    	opts.response = opts.slowdown = opts.wait = opts.uwait = True
+        opts.response = opts.slowdown = opts.wait = opts.uwait = True
         
     if opts.savefile:
         savefilename = opts.savefile
@@ -661,7 +653,7 @@ if __name__ == "__main__":
     if opts.uwait:
         show_uwait(job_dict)
     if opts.metrics:
-    	calculate_sys_util(job_dict, last_end - first_submit)
+        calculate_sys_util(job_dict, last_end - first_submit)
     
 #print color_bars
     if opts.alloc:
