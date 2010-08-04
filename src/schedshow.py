@@ -583,6 +583,44 @@ def calculate_sys_util(job_dict, total_sec):
     print "system utilization rate = ", sysutil
     
     print '\n'
+
+def loss_of_capacity(job_dict):
+    """ Show loss of capacity. Two sub fuction is used: 
+    get_idle_midplanes(), job_waiting()  """
+    event_times = []
+    for key, val in job_dict.iteritems():
+        if val["eventType"] == "Q" or val["eventType"] == "E":
+            event_times.append(date_to_sec(val["submitTime"]))
+    event_times.sort()
+    # previous code may merge into parse part.
+    total_wasted = 0
+    wasted_node_hour = 0
+    for i in range(1, len(event_times)):
+        for key, val in job_dict.iteritems():
+            if (job_waiting(event_times[i])):
+                wasted_node_hour = get_idle_midplanes(event_times[i]) * 512 * (event_times[i] - event_times[i-1]) 
+            else:
+                wasted_node_hour = 0
+        total_wasted += wasted_node_hour
+    loss_of_cap = total_wasted*1.0 / (80.0 * 512 * (int(event_times[len(event_times)-1]) - int(event_times[0])))
+    print "loss of capacity = ", loss_of_cap
+    print "\n"
+
+def get_idle_midplanes(time):
+    """ return idle midplane number """
+    midplanes = 80
+    for i in range(0, len(rec_list)):
+        if rec_list[i].get_3 < time and time < rec_list[i].get_4:
+            midplannes -= (rec_list[i].get_1 - rec_list[i].get_2)
+    return midplanes
+ 
+def job_waiting(time):
+    """ return if exist a waiting job at a specific time """
+    flag = False 
+    for key,val in job_dict.iteritems():
+        if float(val["qtime"]) < time and time < float(val["start"]):
+            flag = True
+    return flag
     
 def show_cosched_metrics(job_dict, total_sec):
 	'''calculate coscheduling metrics.'''
@@ -712,8 +750,12 @@ if __name__ == "__main__":
                     help="show plot on the screen")
     p.add_option("-z", dest="size", action="store_true", default=False,\
 		    help="show job size category")
+    p.add_option("--loss", dest = "loss_of_cap", action = "store_true", \
+                   default = False, help = "show loss_of_cap")
     p.add_option("-A", "--All", dest="run_all", action="store_true", \
             default=False,  help="run all functions")
+
+
     (opts, args)=p.parse_args()
     
     if not opts.logfile:
@@ -722,7 +764,8 @@ if __name__ == "__main__":
         exit()
         
     if opts.run_all:
-        opts.alloc = opts.jobs = opts.nodes = opts.size = opts.response = opts.slowdown = opts.wait = opts.uwait = True
+        opts.alloc = opts.jobs = opts.nodes = opts.size = opts.response = \
+        opts.slowdown = opts.wait = opts.uwait = opts.loss_of_cap = True
         
     if opts.metrics:
         opts.size = opts.response = opts.slowdown = opts.wait = opts.uwait = True
@@ -756,6 +799,8 @@ if __name__ == "__main__":
     	show_cosched_metrics(job_dict, last_end - first_submit)
     if opts.metrics:
         calculate_sys_util(job_dict, last_end - first_submit)
+    if opts.loss_of_cap:
+        loss_of_capacity(job_dict) 
     	
 #print color_bars
     if opts.alloc:
