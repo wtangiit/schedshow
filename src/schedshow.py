@@ -637,6 +637,43 @@ def show_cosched_metrics(job_dict, total_sec):
 		print "median yield time (min):", yield_list[total_yield_job/2]
 		print "maximum yield time (min):", max(yield_list)
 		
+
+def show_size(job_dict):
+	'''convert job size to VS[512], S[1K,2K], \
+			L[4K, 8K], VL[16K, 32K], \
+			(V:very, S:small, L:large)'''
+        VS=0
+	S=0
+	L=0
+	VL=0
+	size = []
+	c=0
+	for k, spec in job_dict.iteritems():
+            host = spec["exec_host"].rsplit("-")	
+	   
+	    if len(host) == 4:
+	    	sizex=host[3][0:]
+	    else:
+	    	sizex=host[2][0:]
+	    if sizex == "512":
+	    	y = "VS"
+	    	VS=VS+1
+	    elif sizex >= "1024" and sizex <= "2048":
+	    	y="S"
+	    	S=S+1
+	    elif sizex >= "4096" and sizex <= "8192":
+	    	y="L"
+	    	L=L+1
+	    elif sizex >= "16384" and sizex <= "32768":
+	    	y="VL"
+	    	VL=VL+1
+	    
+        print "job size category"
+        print "%s\t%s\t%s\t%s"%("VS", "S", "L", "VL")
+        print '\r'
+        print "%s\t%s\t%s\t%s"%(VS, S, L, VL)
+        print '\n'
+        
 if __name__ == "__main__":
     p = OptionParser()
     p.add_option("-l", dest = "logfile", type="string", 
@@ -657,7 +694,8 @@ if __name__ == "__main__":
 		    default=False, \
                     help="print coscheduling metrics")
     p.add_option("-m", "--metrics", action="store_true", \
-			default=False, help="print statistics of all metrics")    
+			default=False, \
+			help="print statistics of all metrics")    
     p.add_option("-b", dest="slowdown", action="store_true", \
 		    default=False, \
                     help="print bounded slowdown to terminal")
@@ -672,6 +710,8 @@ if __name__ == "__main__":
     p.add_option("-s", dest="show", action="store_true", \
 		    default=False,
                     help="show plot on the screen")
+    p.add_option("-z", dest="size", action="store_true", default=False,\
+		    help="show job size category")
     p.add_option("-A", "--All", dest="run_all", action="store_true", \
             default=False,  help="run all functions")
     (opts, args)=p.parse_args()
@@ -682,10 +722,10 @@ if __name__ == "__main__":
         exit()
         
     if opts.run_all:
-        opts.alloc = opts.jobs = opts.nodes = opts.response = opts.slowdown = opts.wait = opts.uwait = True
+        opts.alloc = opts.jobs = opts.nodes = opts.size = opts.response = opts.slowdown = opts.wait = opts.uwait = True
         
     if opts.metrics:
-        opts.response = opts.slowdown = opts.wait = opts.uwait = True
+        opts.size = opts.response = opts.slowdown = opts.wait = opts.uwait = True
         
     if opts.savefile:
         savefilename = opts.savefile
@@ -701,6 +741,8 @@ if __name__ == "__main__":
 
     print "number of jobs:", len(job_dict.keys()), '\n'
     
+    if opts.size:
+        show_size(job_dict)
     if opts.response:
         show_resp(job_dict)
     if opts.wait:
@@ -714,7 +756,7 @@ if __name__ == "__main__":
     	show_cosched_metrics(job_dict, last_end - first_submit)
     if opts.metrics:
         calculate_sys_util(job_dict, last_end - first_submit)
-    
+    	
 #print color_bars
     if opts.alloc:
         draw_job_allocation(job_dict, first_submit, last_end, savefilename)
@@ -730,3 +772,4 @@ if __name__ == "__main__":
 		    please check saved figures if any---"
     print "Tasks accomplished in %s seconds" \
 		    % (int(endtime_sec - starttime_sec))
+
