@@ -321,7 +321,7 @@ def draw_sys_util(job_dict, min_start, max_end, savefile=None):
     fig = plt.figure()
     ax = fig.add_subplot(111)
     plt.title("running jobs & waiting jobs")
-    inteval = (max_end-min_start)/2000.0   # this may modified 
+    inteval = (max_end - min_start)/2000.0   # this may modified 
     timepoint = min_start
     timepoints = []
     job_nodes = []
@@ -342,7 +342,7 @@ def draw_sys_util(job_dict, min_start, max_end, savefile=None):
     
     #waiting job axes
     ax2 = ax.twinx()
-    inteval = (max_end-min_start) / 2000.0 #2000 points here
+    inteval = (max_end - min_start) / 2000.0 #2000 points here
     timepoint = min_start
     timepoints = []
     
@@ -410,8 +410,8 @@ def show_resp(job_dict):
     average = round(total/float(len(value_list)), 2)
 
     value_list.sort()
-    maximum = value_list[len(value_list)-1]
-    median = value_list[len(value_list)/2]
+    maximum = value_list[len(value_list) - 1]
+    median = value_list[len(value_list) / 2]
     index = int(len(value_list) * 0.99)
     percentile_99 = value_list[index]
     index = int(len(value_list) * 0.90)
@@ -441,8 +441,8 @@ def show_wait(job_dict):
     average = round(total/float(len(value_list)), 2)
     
     value_list.sort()
-    maximum = value_list[len(value_list)-1]
-    median = value_list[len(value_list)/2]
+    maximum = value_list[len(value_list) - 1]
+    median = value_list[len(value_list) / 2]
     index = int(len(value_list) * 0.99)
     percentile_99 = value_list[index]
     index = int(len(value_list) * 0.90)
@@ -475,8 +475,8 @@ def show_slowdown(job_dict):
         total += item
     average = round(total/float(len(value_list)), 2)
     value_list.sort()
-    maximum = value_list[len(value_list)-1]
-    median = value_list[len(value_list)/2]
+    maximum = value_list[len(value_list) - 1]
+    median = value_list[len(value_list) / 2]
     index = int(len(value_list) * 0.99)
     percentile_99 = value_list[index]
     index = int(len(value_list) * 0.90)
@@ -583,7 +583,60 @@ def calculate_sys_util(job_dict, total_sec):
     print "system utilization rate = ", sysutil
     
     print '\n'
-
+    
+def show_cosched_metrics(job_dict, total_sec):
+	'''calculate coscheduling metrics.'''
+	total_hold_time = 0
+	total_hold_job = 0
+	total_yield_time = 0
+	total_yield_job = 0
+	wasted_node_hour = 0
+	hold_list = []
+	yield_list = []
+	
+	total_nodes = 1
+	
+	for k, spec in job_dict.iteritems():
+		holding = float(spec["hold"])
+		yielding = float(spec.get("yield", 0))
+		if holding > 0:
+			total_hold_time += holding / 60
+			total_hold_job += 1
+			hold_list.append(holding / 60)
+			
+			host = spec["exec_host"]
+			if host[0] == 'A': #intrepid
+				nodes = int(host.split("-")[-1])
+				total_nodes = 40960
+			elif host[0] == 'n':
+				nodes = len(host.split(':'))
+				total_nodes = 100
+			wasted_node_hour += (nodes * holding) / 3600
+						 
+		if yielding > 0:
+			total_yield_time += yielding / 60
+			total_yield_job += 1
+			yield_list.append(yielding / 60)
+	
+	waisted_sys_util = wasted_node_hour / (total_sec * total_nodes / 3600)
+	
+	if total_hold_job > 0:
+		hold_list.sort()
+		print "total holding job:", total_hold_job
+		print "average holding time (min):", total_hold_time / total_hold_job
+		print "median holding time (min):", hold_list[total_hold_job/2]
+		print "maximum holding time (min):", max(hold_list)
+		print "total waisted node-hour:", wasted_node_hour
+		print "total waisted sysutil:", waisted_sys_util
+	
+	if total_yield_job > 0:
+		yield_list.sort()
+		total_yield_time /= 60
+		print "total yield job:", total_yield_job
+		print "average yield time (min):", total_yield_time / total_yield_job
+		print "median yield time (min):", yield_list[total_yield_job/2]
+		print "maximum yield time (min):", max(yield_list)
+		
 if __name__ == "__main__":
     p = OptionParser()
     p.add_option("-l", dest = "logfile", type="string", 
@@ -600,6 +653,9 @@ if __name__ == "__main__":
     p.add_option("-r", dest="response", action="store_true", \
 		    default=False, \
                     help="print response time to terminal")
+    p.add_option("-c", dest="cosched", action="store_true", \
+		    default=False, \
+                    help="print coscheduling metrics")
     p.add_option("-m", "--metrics", action="store_true", \
 			default=False, help="print statistics of all metrics")    
     p.add_option("-b", dest="slowdown", action="store_true", \
@@ -654,6 +710,8 @@ if __name__ == "__main__":
         show_slowdown_alt(job_dict)
     if opts.uwait:
         show_uwait(job_dict)
+    if opts.cosched:
+    	show_cosched_metrics(job_dict, last_end - first_submit)
     if opts.metrics:
         calculate_sys_util(job_dict, last_end - first_submit)
     
