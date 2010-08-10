@@ -51,16 +51,24 @@ def get_color(t_1, t_2, t_3, t_4, thresholdx, thresholdy):
         return random.choice(temp_color)
     else:
         for i in range(0, len(rec_list)):
-            if abs(t_3-rec_list[i].get_3()) <= thresholdx and abs(t_4-rec_list[i].get_4()) <= thresholdx and abs(t_1-rec_list[i].get_2()) <= thresholdy: 
+            if abs(t_3-rec_list[i].get_3()) <= thresholdx and \
+            abs(t_4-rec_list[i].get_4()) <= thresholdx and \
+            abs(t_1-rec_list[i].get_2()) <= thresholdy: 
                 if rec_list[i].get_color() in temp_color:
                     temp_color.remove(rec_list[i].get_color())
-            if abs(t_3-rec_list[i].get_3()) <= thresholdx and abs(t_4-rec_list[i].get_4()) <= thresholdx and abs(t_2-rec_list[i].get_1()) <= thresholdy:
+            if abs(t_3-rec_list[i].get_3()) <= thresholdx and \
+            abs(t_4-rec_list[i].get_4()) <= thresholdx and \
+            abs(t_2-rec_list[i].get_1()) <= thresholdy:
                 if rec_list[i].get_color() in temp_color:
                     temp_color.remove(rec_list[i].get_color())
-            if abs(t_1-rec_list[i].get_1()) <= thresholdy and abs(t_2-rec_list[i].get_2()) <= thresholdy and abs(t_4-rec_list[i].get_3()) <= thresholdx:
+            if abs(t_1-rec_list[i].get_1()) <= thresholdy and \
+            abs(t_2-rec_list[i].get_2()) <= thresholdy and \
+            abs(t_4-rec_list[i].get_3()) <= thresholdx:
                 if rec_list[i].get_color() in temp_color:
                     temp_color.remove(rec_list[i].get_color())
-            if abs(t_1-rec_list[i].get_1()) <= thresholdy and abs(t_2-rec_list[i].get_2()) <= thresholdy and abs(t_3-rec_list[i].get_4()) <= thresholdx:
+            if abs(t_1-rec_list[i].get_1()) <= thresholdy and \
+            abs(t_2-rec_list[i].get_2()) <= thresholdy and \
+            abs(t_3-rec_list[i].get_4()) <= thresholdx:
                 if rec_list[i].get_color() in temp_color:
                     temp_color.remove(rec_list[i].get_color())
     return random.choice(temp_color)
@@ -69,7 +77,7 @@ SHOW = False
 
 def get_width(line_data_dictionary):
     '''get job width'''
-    two = [] # two[0]: start point, two[1]: end point
+    #two = [] # two[0]: start point, two[1]: end point
     host = line_data_dictionary["exec_host"].rsplit("-")
     if len(host) == 4:
         x = host[1][1:]    # case 1: ANL-R20-R21-2048 ---> x=20 y=21
@@ -87,9 +95,9 @@ def get_width(line_data_dictionary):
     else:                # For case 1 & 3:
         x1 = 16 * int(x[0:1]) + 2 * int(x[1:2])
         y1 = 16 * int(y[0:1]) + 2 * int(y[1:2]) + 2
-    two.append(x1)
-    two.append(y1)
-    return two
+    #two.append(x1)
+    #two.append(y1)
+    return x1,y1
 
 def date_to_sec(fmtdate, dateformat="%m/%d/%Y %H:%M:%S"):
     '''convert date into seconds'''
@@ -191,9 +199,10 @@ def draw_job_allocation(job_dict, min_start, max_end, savefile=None):
     for k, v in job_dict.iteritems():
         start = float(v["start"])
         end = float(v["end"])
-        width = get_width(v)
-        x = width[0]
-        y = width[1]
+        (x,y)=get_width(v)
+        #width = get_width(v)
+        #x = width[0]
+        #y = width[1]
         #width[0]:x   start point on y-axes
         #width[1]:y   end point on y-axes
         threshold_x = (end-start) / 40.0
@@ -201,7 +210,7 @@ def draw_job_allocation(job_dict, min_start, max_end, savefile=None):
         current_color = get_color(y, x, start, end, threshold_x, threshold_y)
         add_rect(y, x, start, end, current_color)
         ax.barh(x, end-start, y-x, start, facecolor=current_color)
-    
+     
     labels = []
     yticks = []
     for i in range(0, 80):
@@ -397,6 +406,152 @@ def print_header():
     for item in metric_header:
 	print item, '\t',
 		
+def show_size_metrics(job_dict):
+    """ show all metrics"""
+    very_small = []
+    small = []
+    large = []
+    very_large = []
+    for k, val in job_dict.iteritems():
+        host = val["exec_host"].rsplit("-")
+        if len(host) == 4:
+            size = host[3]
+        else:
+            size = host[2]
+        if size == "512":
+            very_small.append(val)
+        elif "1024" <= size and size <= "2048":
+            small.append(val)
+        elif "4096" <= size and size <= "8192":
+            large.append(val)
+        elif "16384" <= size and size <= "32768":
+            very_large.append(val)
+    # now jobs are classified. VS V L VL.
+    # very small part
+    vs_resp_list = []
+    total = 0.0
+    for item in very_small:
+        resp = (float(item["end"]) - float(item["qtime"])) / 60.0
+        total += resp
+        vs_resp_list.append(round(resp, 1))
+    # response time stored into list vs_resp_list
+    if len(vs_resp_list) != 0:
+        average = round(total / float(len(vs_resp_list)), 2)
+        vs_resp_list.sort()
+        maximum = vs_resp_list[len(vs_resp_list) - 1]
+        median = vs_resp_list[len(vs_resp_list) / 2]
+        index = int(len(vs_resp_list) * 0.99)
+        percentile_99 = vs_resp_list[index]
+        index = int(len(vs_resp_list) * 0.90)
+        percentile_90 = vs_resp_list[index]
+        index = int(len(vs_resp_list) * 0.80)
+        percentile_80 = vs_resp_list[index]
+        minimum = vs_resp_list[0]
+        
+        print "Very Small Job (",len(vs_resp_list) , ") Resp time (min)"
+        print_header()
+        print '\r'
+        print "%s\t%s\t%s\t%s\t%s\t%s\t%s" \
+         % (average, maximum, percentile_99, \
+            percentile_90, percentile_80, median, minimum)
+        print '\n'
+    else:
+        print "There is no Very Small Job\n"
+
+    # Small job part
+    small_resp_list = []
+    total = 0.0
+    for item in small:
+        resp = (float(item["end"]) - float(item["qtime"])) / 60.0
+        total += resp
+        small_resp_list.append(round(resp, 1))
+    # response time stored into list small_resp_list
+    if len(small_resp_list) != 0:
+        average = round(total / float(len(small_resp_list)), 2)
+        small_resp_list.sort()
+        maximum = small_resp_list[len(small_resp_list) - 1]
+        median = small_resp_list[len(small_resp_list) / 2]
+        index = int(len(small_resp_list) * 0.99)
+        percentile_99 = small_resp_list[index]
+        index = int(len(small_resp_list) * 0.90)
+        percentile_90 = small_resp_list[index]
+        index = int(len(small_resp_list) * 0.80)
+        percentile_80 = small_resp_list[index]
+        minimum = small_resp_list[0]
+        
+        print "Small Job (",len(small_resp_list) , ") Resp time (min)"
+        print_header()
+        print '\r'
+        print "%s\t%s\t%s\t%s\t%s\t%s\t%s" \
+         % (average, maximum, percentile_99, \
+            percentile_90, percentile_80, median, minimum)
+        print '\n'
+    else:
+        print "There is no Small Job\n"
+
+    # large part
+    large_resp_list = []
+    total = 0.0
+    for item in large:
+        resp = (float(item["end"]) - float(item["qtime"])) / 60.0
+        total += resp
+        large_resp_list.append(round(resp, 1))
+    # response time stored into list large_resp_list
+    if len(large_resp_list) != 0:
+        average = round(total / float(len(large_resp_list)), 2)
+        large_resp_list.sort()
+        maximum = large_resp_list[len(large_resp_list) - 1]
+        median = large_resp_list[len(large_resp_list) / 2]
+        index = int(len(large_resp_list) * 0.99)
+        percentile_99 = large_resp_list[index]
+        index = int(len(large_resp_list) * 0.90)
+        percentile_90 = large_resp_list[index]
+        index = int(len(large_resp_list) * 0.80)
+        percentile_80 = large_resp_list[index]
+        minimum = large_resp_list[0]
+        
+        print "Large Job (",len(large_resp_list) , ") Resp time (min)"
+        print_header()
+        print '\r'
+        print "%s\t%s\t%s\t%s\t%s\t%s\t%s" \
+         % (average, maximum, percentile_99, \
+            percentile_90, percentile_80, median, minimum)
+        print '\n'
+    else:
+        print "There is no Large Job\n"
+
+    # very large part
+    vl_resp_list = []
+    total = 0.0
+    for item in very_large:
+        resp = (float(item["end"]) - float(item["qtime"])) / 60.0
+        total += resp
+        vl_resp_list.append(round(resp, 1))
+    # response time stored into list vl_resp_list
+    if len(vl_resp_list) != 0: 
+        average = round(total / float(len(vl_resp_list)), 2)
+        vl_resp_list.sort()
+        maximum = vl_resp_list[len(vl_resp_list) - 1]
+        median = vl_resp_list[len(vl_resp_list) / 2]
+        index = int(len(vl_resp_list) * 0.99)
+        percentile_99 = vl_resp_list[index]
+        index = int(len(vl_resp_list) * 0.90)
+        percentile_90 = vl_resp_list[index]
+        index = int(len(vl_resp_list) * 0.80)
+        percentile_80 = vl_resp_list[index]
+        minimum = vl_resp_list[0]
+        
+        print "Very Large Job (",len(vl_resp_list) , ") Resp time (min)"
+        print_header()
+        print '\r'
+        print "%s\t%s\t%s\t%s\t%s\t%s\t%s" \
+         % (average, maximum, percentile_99, \
+            percentile_90, percentile_80, median, minimum)
+        print '\n'
+    else:
+        print "There is no Very Large Job\n"
+
+
 def show_resp(job_dict):
     '''calculate response time'''
     value_list = []
@@ -597,12 +752,15 @@ def loss_of_capacity(job_dict):
     wasted_node_hour = 0
     for i in range(1, len(event_times)):
         for key, val in job_dict.iteritems():
-            if (job_waiting(event_times[i])):
-                wasted_node_hour = get_idle_midplanes(event_times[i]) * 512 * (event_times[i] - event_times[i-1]) 
+            if (if_job_waiting(event_times[i])):
+                wasted_node_hour = get_idle_midplanes(event_times[i]) * \
+                512 * (event_times[i] - event_times[i-1]) 
             else:
                 wasted_node_hour = 0
         total_wasted += wasted_node_hour
-    loss_of_cap = total_wasted*1.0 / (80.0 * 512 * (int(event_times[len(event_times)-1]) - int(event_times[0])))
+    loss_of_cap = total_wasted*1.0 / (80.0 * 512 * \
+                  (int(event_times[len(event_times)-1]) - \
+                  int(event_times[0])))
     print "loss of capacity = ", loss_of_cap
     print "\n"
 
@@ -614,7 +772,7 @@ def get_idle_midplanes(time):
             midplannes -= (rec_list[i].get_1 - rec_list[i].get_2)
     return midplanes
  
-def job_waiting(time):
+def if_job_waiting(time):
     """ return if exist a waiting job at a specific time """
     flag = False 
     for key,val in job_dict.iteritems():
@@ -674,87 +832,50 @@ def show_cosched_metrics(job_dict, total_sec):
 		print "average yield time (min):", total_yield_time / total_yield_job
 		print "median yield time (min):", yield_list[total_yield_job/2]
 		print "maximum yield time (min):", max(yield_list)
-		
 
-def show_size(job_dict):
-	'''convert job size to VS[512], S[1K,2K], \
-			L[4K, 8K], VL[16K, 32K], \
-			(V:very, S:small, L:large)'''
-        VS=0
-	S=0
-	L=0
-	VL=0
-	size = []
-	c=0
-	for k, spec in job_dict.iteritems():
-            host = spec["exec_host"].rsplit("-")	
-	   
-	    if len(host) == 4:
-	    	sizex=host[3][0:]
-	    else:
-	    	sizex=host[2][0:]
-	    if sizex == "512":
-	    	y = "VS"
-	    	VS=VS+1
-	    elif sizex >= "1024" and sizex <= "2048":
-	    	y="S"
-	    	S=S+1
-	    elif sizex >= "4096" and sizex <= "8192":
-	    	y="L"
-	    	L=L+1
-	    elif sizex >= "16384" and sizex <= "32768":
-	    	y="VL"
-	    	VL=VL+1
-	    
-        print "job size category"
-        print "%s\t%s\t%s\t%s"%("VS", "S", "L", "VL")
-        print '\r'
-        print "%s\t%s\t%s\t%s"%(VS, S, L, VL)
-        print '\n'
         
 if __name__ == "__main__":
     p = OptionParser()
     p.add_option("-l", dest = "logfile", type="string", 
                  help = "path of log file (required)")
-    p.add_option("-a", "--alloc", dest="alloc", action="store_true", \
-		    default=False, \
+    p.add_option("-a", "--alloc", dest = "alloc", action = "store_true", \
+		    default = False, \
 		    help="plot bars represent for individual jobs ")
-    p.add_option("-j", "--jobs", dest="jobs", action="store_true", \
-		    default=False, \
-		    help="show number of waiting & running jobs")
-    p.add_option("-n", "--nodes", dest="nodes", action="store_true", \
-		    default=False, \
-                    help="show number of waiting $ running nodes")
-    p.add_option("-r", dest="response", action="store_true", \
-		    default=False, \
-                    help="print response time to terminal")
-    p.add_option("-c", dest="cosched", action="store_true", \
-		    default=False, \
-                    help="print coscheduling metrics")
-    p.add_option("-m", "--metrics", action="store_true", \
-			default=False, \
-			help="print statistics of all metrics")    
-    p.add_option("-b", dest="slowdown", action="store_true", \
-		    default=False, \
-                    help="print bounded slowdown to terminal")
-    p.add_option("-w", dest="wait", action="store_true", \
-		    default=False, \
-                    help="print wait time to terminal")
-    p.add_option("-u", dest="uwait", action="store_true", \
-            default=False, \
-                    help="print unitless wait (waittime/walltime) ")
-    p.add_option("-o", dest="savefile", default="schedshow", \
-                    help="feature string of the output files")
-    p.add_option("-s", dest="show", action="store_true", \
-		    default=False,
-                    help="show plot on the screen")
-    p.add_option("-z", dest="size", action="store_true", default=False,\
-		    help="show job size category")
+    p.add_option("-j", "--jobs", dest = "jobs", action = "store_true", \
+		    default = False, \
+		    help = "show number of waiting & running jobs")
+    p.add_option("-n", "--nodes", dest = "nodes", action = "store_true", \
+		    default = False, \
+                    help = "show number of waiting $ running nodes")
+    p.add_option("-r", dest = "response", action = "store_true", \
+		    default = False, \
+                    help = "print response time to terminal")
+    p.add_option("-c", dest = "cosched", action = "store_true", \
+		    default = False, \
+                    help = "print coscheduling metrics")
+    p.add_option("-m", "--metrics", action = "store_true", \
+	            default = False, \
+		    help = "print statistics of all metrics")    
+    p.add_option("-b", dest = "slowdown", action = "store_true", \
+		    default = False, \
+                    help = "print bounded slowdown to terminal")
+    p.add_option("-w", dest = "wait", action = "store_true", \
+		    default = False, \
+                    help = "print wait time to terminal")
+    p.add_option("-u", dest = "uwait", action = "store_true", \
+                    default = False, \
+                    help = "print unitless wait (waittime/walltime) ")
+    p.add_option("-o", dest = "savefile", default = "schedshow", \
+                    help = "feature string of the output files")
+    p.add_option("-s", dest = "show", action = "store_true", \
+		    default = False,
+                    help = "show plot on the screen")
     p.add_option("--loss", dest = "loss_of_cap", action = "store_true", \
-                   default = False, help = "show loss_of_cap")
-    p.add_option("-A", "--All", dest="run_all", action="store_true", \
-            default=False,  help="run all functions")
-
+                    default = False, help = "show loss_of_cap")
+    p.add_option("-z", "--size", dest = "size_metrics", action = "store_true", \
+                    default = False, help = "show metrics of different size job")
+    p.add_option("-A", "--All", dest = "run_all", action = "store_true", \
+                    default = False,  help = "run all functions")
 
     (opts, args)=p.parse_args()
     
@@ -780,12 +901,10 @@ if __name__ == "__main__":
 
     starttime_sec = time.time()
         
-    (job_dict, first_submit, first_start, last_end)=parseLogFile(opts.logfile)
+    (job_dict, first_submit, first_start, last_end) = parseLogFile(opts.logfile)
 
     print "number of jobs:", len(job_dict.keys()), '\n'
     
-    if opts.size:
-        show_size(job_dict)
     if opts.response:
         show_resp(job_dict)
     if opts.wait:
@@ -801,6 +920,8 @@ if __name__ == "__main__":
         calculate_sys_util(job_dict, last_end - first_submit)
     if opts.loss_of_cap:
         loss_of_capacity(job_dict) 
+    if opts.size_metrics:
+        show_size_metrics(job_dict)
     	
 #print color_bars
     if opts.alloc:
