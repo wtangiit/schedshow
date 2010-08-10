@@ -551,6 +551,35 @@ def show_size_metrics(job_dict):
     else:
         print "There is no Very Large Job\n"
 
+# some globle arguments
+
+vs_dict = {}
+s_dict = {}
+l_dict = {}
+vl_dict = {}
+
+def show_size(job_dict):
+    """ show all metrics"""
+    for k, val in job_dict.iteritems():
+        jobid = val["jobid"]
+        host = val["exec_host"].rsplit("-")
+        if len(host) == 4:
+            size = host[3]
+        else:
+            size = host[2]
+        if size == "512":
+            vs_dict[jobid] = val
+        elif "1024" <= size and size <= "2048":
+            s_dict[jobid] = val
+        elif "4096" <= size and size <= "8192":
+            l_dict[jobid] = val
+        elif "16384" <= size and size <= "32768":
+            vl_dict[jobid] = val
+    print "Job category number"
+    print "VS\tS\tL\tVL"
+    print "%s\t%s\t%s\t%s\n" % (len(vs_dict.keys()), \
+          len(s_dict.keys()), len(l_dict.keys()), \
+          len(vl_dict.keys()) )
 
 def show_resp(job_dict):
     '''calculate response time'''
@@ -581,8 +610,31 @@ def show_resp(job_dict):
     print "%s\t%s\t%s\t%s\t%s\t%s\t%s" \
      % (average, maximum, percentile_99, \
 	percentile_90, percentile_80, median, minimum)
-
     print '\n'
+
+def show_all_resp(dictionary):
+    print "All jobs:"
+    show_resp(dictionary)
+    if len(s_dict.keys()) != 0:
+        print "Very Small jobs:"
+        show_resp(s_dict)
+    else:
+        print "No Very Small jobs"
+    if len(vs_dict.keys()) != 0:
+        print "Small jobs:"
+        show_resp(vs_dict)
+    else:
+        print "No Small jobs"
+    if len(l_dict.keys()) != 0:
+        print "Large jobs:"
+        show_resp(l_dict)
+    else:
+        print "No Large jobs"
+    if len(vl_dict.keys()) != 0:
+        print "Very Large jobs:"
+        show_resp(vl_dict)
+    else:
+        print "No Very Large jobs\n"
     
 def show_wait(job_dict):
     '''calculate waiting time'''
@@ -615,6 +667,30 @@ def show_wait(job_dict):
         
     print '\n'
 
+def show_all_wait(dictionary):
+    print "All jobs:"
+    show_wait(dictionary)
+    if len(s_dict.keys()) != 0:
+        print "Very Small jobs:"
+        show_wait(s_dict)
+    else:
+        print "No Very Small jobs"
+    if len(vs_dict.keys()) != 0:
+        print "Small jobs:"
+        show_wait(vs_dict)
+    else:
+        print "No Small jobs"
+    if len(l_dict.keys()) != 0:
+        print "Large jobs:"
+        show_wait(l_dict)
+    else:
+        print "No Large jobs"
+    if len(vl_dict.keys()) != 0:
+        print "Very Large jobs:"
+        show_wait(vl_dict)
+    else:
+        print "No Very Large jobs\n"
+ 
 def show_slowdown(job_dict):
     '''calculate slowdown'''
     value_list = []
@@ -648,7 +724,32 @@ def show_slowdown(job_dict):
 	percentile_90, percentile_80, median, minimum)
 
     print '\n'
-    
+ 
+def show_all_slowdown(dictionary):
+    print "All jobs:"
+    show_slowdown(dictionary)
+    if len(s_dict.keys()) != 0:
+        print "Very Small jobs:"
+        show_slowdown(s_dict)
+    else:
+        print "No Very Small jobs"
+    if len(vs_dict.keys()) != 0:
+        print "Small jobs:"
+        show_slowdown(vs_dict)
+    else:
+        print "No Small jobs"
+    if len(l_dict.keys()) != 0:
+        print "Large jobs:"
+        show_slowdown(l_dict)
+    else:
+        print "No Large jobs"
+    if len(vl_dict.keys()) != 0:
+        print "Very Large jobs:"
+        show_slowdown(vl_dict)
+    else:
+        print "No Very Large jobs\n"
+ 
+   
 def show_slowdown_alt(job_dict):
     '''calculate slowdown'''
     value_list = []
@@ -683,6 +784,30 @@ def show_slowdown_alt(job_dict):
   
     print '\n' 
 
+def show_all_slowdown_alt(dictionary):
+    print "All jobs:"
+    show_slowdown_alt(dictionary)
+    if len(s_dict.keys()) != 0:
+        print "Very Small jobs:"
+        show_slowdown_alt(s_dict)
+    else:
+        print "No Very Small jobs"
+    if len(vs_dict.keys()) != 0:
+        print "Small jobs:"
+        show_slowdown_alt(vs_dict)
+    else:
+        print "No Small jobs"
+    if len(l_dict.keys()) != 0:
+        print "Large jobs:"
+        show_slowdown_alt(l_dict)
+    else:
+        print "No Large jobs"
+    if len(vl_dict.keys()) != 0:
+        print "Very Large jobs:"
+        show_slowdown_alt(vl_dict)
+    else:
+        print "No Very Large jobs\n"
+ 
 def show_uwait(job_dict):
     '''calculate unitless wait'''
     value_list = []
@@ -714,7 +839,31 @@ def show_uwait(job_dict):
 	percentile_90, percentile_80, median, minimum)
     
     print '\n'
-    
+
+def show_all_uwait(dictionary):
+    print "All jobs:"
+    show_uwait(dictionary)
+    if len(s_dict.keys()) != 0:
+        print "Very Small jobs:"
+        show_uwait(s_dict)
+    else:
+        print "No Very Small jobs"
+    if len(vs_dict.keys()) != 0:
+        print "Small jobs:"
+        show_uwait(vs_dict)
+    else:
+        print "No Small jobs"
+    if len(l_dict.keys()) != 0:
+        print "Large jobs:"
+        show_uwait(l_dict)
+    else:
+        print "No Large jobs"
+    if len(vl_dict.keys()) != 0:
+        print "Very Large jobs:"
+        show_uwait(vl_dict)
+    else:
+        print "No Very Large jobs\n"
+ 
 def calculate_sys_util(job_dict, total_sec):
     '''calculate sys util'''
     value_list = []
@@ -759,8 +908,8 @@ def loss_of_capacity(job_dict):
                 wasted_node_hour = 0
         total_wasted += wasted_node_hour
     loss_of_cap = total_wasted*1.0 / (80.0 * 512 * \
-                  (int(event_times[len(event_times)-1]) - \
-                  int(event_times[0])))
+                  (float(event_times[len(event_times)-1]) - \
+                  float(event_times[0])))
     print "loss of capacity = ", loss_of_cap
     print "\n"
 
@@ -872,12 +1021,12 @@ if __name__ == "__main__":
                     help = "show plot on the screen")
     p.add_option("--loss", dest = "loss_of_cap", action = "store_true", \
                     default = False, help = "show loss_of_cap")
-    p.add_option("-z", "--size", dest = "size_metrics", action = "store_true", \
-                    default = False, help = "show metrics of different size job")
+    p.add_option("-z", "--size", dest = "size", action = "store_true", \
+                    default = False, help = "show job number of different size")
     p.add_option("-A", "--All", dest = "run_all", action = "store_true", \
                     default = False,  help = "run all functions")
 
-    (opts, args)=p.parse_args()
+    (opts, args) = p.parse_args()
     
     if not opts.logfile:
         print "please specify path of log file"
@@ -904,24 +1053,24 @@ if __name__ == "__main__":
     (job_dict, first_submit, first_start, last_end) = parseLogFile(opts.logfile)
 
     print "number of jobs:", len(job_dict.keys()), '\n'
-    
+ 
+    if opts.size:
+        show_size(job_dict)
     if opts.response:
-        show_resp(job_dict)
+        show_all_resp(job_dict)
     if opts.wait:
-        show_wait(job_dict)
+        show_all_wait(job_dict)
     if opts.slowdown:
-        show_slowdown(job_dict)
-        show_slowdown_alt(job_dict)
+        show_all_slowdown(job_dict)
+        show_all_slowdown_alt(job_dict)
     if opts.uwait:
-        show_uwait(job_dict)
+        show_all_uwait(job_dict)
     if opts.cosched:
     	show_cosched_metrics(job_dict, last_end - first_submit)
     if opts.metrics:
         calculate_sys_util(job_dict, last_end - first_submit)
     if opts.loss_of_cap:
         loss_of_capacity(job_dict) 
-    if opts.size_metrics:
-        show_size_metrics(job_dict)
     	
 #print color_bars
     if opts.alloc:
