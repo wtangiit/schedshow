@@ -405,7 +405,37 @@ metric_header = ["Avg", "Max", "99th", "90th", "80th", "Median", "Min"]
 def print_header():
     for item in metric_header:
 	print item, '\t',
-		
+
+happy_dict={} #temp
+
+def happy_job(job_dict):
+    '''show if the job is a happy job or not'''
+    count = 0
+    for k, val in job_dict.iteritems():
+	jobid = val["jobid"]
+	qtime = float(val["qtime"])
+	stime = float(val["start"])
+	size1 = int(val["exec_host"].split("-")[-1])
+	prrty1 = (1/float(val["walltime"])) ** 3 * float(size1)
+	end = []
+	for k, val in job_dict.iteritems():
+	    if qtime >= float(val["qtime"]) and jobid != val["jobid"]:
+	       waittime = qtime - float(val["qtime"])
+	       size = int(val["exec_host"].split("-")[-1])
+	       prrty2 = ((1+waittime)/float(val["walltime"])) ** 3 * float(size)
+	       if prrty2 > prrty1:
+                  end.append(val["end"])
+        end.sort()
+	if len(end) == 0:
+	    happy_dict[jobid] = val
+            count = count + 1
+	elif stime <= end[len(end)-1]:
+	    happy_dict[jobid] = val
+            count = count + 1
+    print "The number of happy jobs : ", count
+	          
+
+
 def show_size_metrics(job_dict):
     """ show all metrics"""
     very_small = []
@@ -1008,6 +1038,9 @@ if __name__ == "__main__":
     p.add_option("-b", dest = "slowdown", action = "store_true", \
 		    default = False, \
                     help = "print bounded slowdown to terminal")
+    p.add_option("--happy", dest = "happy", action = "store_true", \
+		    default = False, \
+		    help = "print the number of happy job")
     p.add_option("-w", dest = "wait", action = "store_true", \
 		    default = False, \
                     help = "print wait time to terminal")
@@ -1035,7 +1068,8 @@ if __name__ == "__main__":
         
     if opts.run_all:
         opts.alloc = opts.jobs = opts.nodes = opts.size = opts.response = \
-        opts.slowdown = opts.wait = opts.uwait = opts.loss_of_cap = True
+        opts.slowdown = opts.wait = opts.uwait = opts.happy = \
+	opts.loss_of_cap = True
         
     if opts.metrics:
         opts.size = opts.response = opts.slowdown = opts.wait = opts.uwait = True
@@ -1071,7 +1105,8 @@ if __name__ == "__main__":
         calculate_sys_util(job_dict, last_end - first_submit)
     if opts.loss_of_cap:
         loss_of_capacity(job_dict) 
-    	
+    if opts.happy:
+	happy_job(job_dict)
 #print color_bars
     if opts.alloc:
         draw_job_allocation(job_dict, first_submit, last_end, savefilename)
