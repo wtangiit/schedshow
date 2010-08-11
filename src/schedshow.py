@@ -463,7 +463,6 @@ metric_header = ["Avg", "Max", "99th", "90th", "80th", "Median", "Min"]
 def print_header():
     for item in metric_header:
 	print item, '\t',
-<<<<<<< HEAD
 
 happy_dict={} #temp
 
@@ -639,8 +638,6 @@ def show_size_metrics(job_dict):
         print '\n'
     else:
         print "There is no Very Large Job\n"
-=======
->>>>>>> 48b19382e27163795f988779f872174e53b875c2
 
 # some globle arguments
 
