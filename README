@@ -12,5 +12,5 @@ Options:
   -w           print wait time to terminal
   -o SAVEFILE  feature string of the output files
   -s           show plot on the screen
-
+  --happy      show number of happy_wait job
 
