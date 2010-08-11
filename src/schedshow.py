@@ -9,6 +9,11 @@ import random
 import matplotlib.pyplot as plt
 from optparse import OptionParser
 
+
+SHOW = False
+rec_list = []  # a list contains all the rectangles.
+color_list = ['b', 'g', 'r', 'c', 'm', 'y', 'gray']  # 7 color are used here
+
 class Rect:
     def __init__(self, p_1, p_2, p_3, p_4, color): 
     #""" default constructor """
@@ -34,10 +39,6 @@ class Rect:
         return self.color
 # End of Class
 
-
-rec_list = []  # a list contains all the rectangles.
-color_list = ['b', 'g', 'r', 'c', 'm', 'y', 'gray']  # 7 color are used here
-
 def add_rect(a_1, a_2, a_3, a_4, color):
     """ add an rect to rec_list """
     temp = Rect(a_1, a_2, a_3, a_4, color) 
@@ -51,29 +52,27 @@ def get_color(t_1, t_2, t_3, t_4, thresholdx, thresholdy):
         return random.choice(temp_color)
     else:
         for i in range(0, len(rec_list)):
-            if abs(t_3-rec_list[i].get_3()) <= thresholdx and \
-            abs(t_4-rec_list[i].get_4()) <= thresholdx and \
-            abs(t_1-rec_list[i].get_2()) <= thresholdy: 
+            if abs(t_3 - rec_list[i].get_3()) <= thresholdx and \
+            abs(t_4 - rec_list[i].get_4()) <= thresholdx and \
+            abs(t_1 - rec_list[i].get_2()) <= thresholdy: 
                 if rec_list[i].get_color() in temp_color:
                     temp_color.remove(rec_list[i].get_color())
-            if abs(t_3-rec_list[i].get_3()) <= thresholdx and \
-            abs(t_4-rec_list[i].get_4()) <= thresholdx and \
-            abs(t_2-rec_list[i].get_1()) <= thresholdy:
+            if abs(t_3 - rec_list[i].get_3()) <= thresholdx and \
+            abs(t_4 - rec_list[i].get_4()) <= thresholdx and \
+            abs(t_2 - rec_list[i].get_1()) <= thresholdy:
                 if rec_list[i].get_color() in temp_color:
                     temp_color.remove(rec_list[i].get_color())
-            if abs(t_1-rec_list[i].get_1()) <= thresholdy and \
-            abs(t_2-rec_list[i].get_2()) <= thresholdy and \
-            abs(t_4-rec_list[i].get_3()) <= thresholdx:
+            if abs(t_1 - rec_list[i].get_1()) <= thresholdy and \
+            abs(t_2 - rec_list[i].get_2()) <= thresholdy and \
+            abs(t_4 - rec_list[i].get_3()) <= thresholdx:
                 if rec_list[i].get_color() in temp_color:
                     temp_color.remove(rec_list[i].get_color())
-            if abs(t_1-rec_list[i].get_1()) <= thresholdy and \
-            abs(t_2-rec_list[i].get_2()) <= thresholdy and \
-            abs(t_3-rec_list[i].get_4()) <= thresholdx:
+            if abs(t_1 - rec_list[i].get_1()) <= thresholdy and \
+            abs(t_2 - rec_list[i].get_2()) <= thresholdy and \
+            abs(t_3 - rec_list[i].get_4()) <= thresholdx:
                 if rec_list[i].get_color() in temp_color:
                     temp_color.remove(rec_list[i].get_color())
     return random.choice(temp_color)
-
-SHOW = False
 
 def get_width(line_data_dictionary):
     '''get job width'''
@@ -97,9 +96,9 @@ def get_width(line_data_dictionary):
         y1 = 16 * int(y[0:1]) + 2 * int(y[1:2]) + 2
     #two.append(x1)
     #two.append(y1)
-    return x1,y1
+    return x1, y1
 
-def date_to_sec(fmtdate, dateformat="%m/%d/%Y %H:%M:%S"):
+def date_to_sec(fmtdate, dateformat = "%m/%d/%Y %H:%M:%S"):
     '''convert date into seconds'''
 
     t_tuple = time.strptime(fmtdate, dateformat)
@@ -169,8 +168,8 @@ def parseLogFile(filename):
             spec['walltime'] = 0
             if format_walltime:
                 segs = format_walltime.split(':')
-                walltime_minuntes = int(segs[0])*60 + int(segs[1])
-                spec['walltime'] = str(int(segs[0])*60 + int(segs[1]))
+                walltime_minuntes = int(segs[0]) * 60 + int(segs[1])
+                spec['walltime'] = str(int(segs[0]) * 60 + int(segs[1]))
             else:  #invalid job entry, discard
                 continue
             
@@ -182,12 +181,12 @@ def parseLogFile(filename):
 def getInHMS(seconds):
     '''this allows convert sec into form HH:MM:SS'''
     hours = int(seconds) / 3600
-    seconds = seconds - 3600*hours
+    seconds = seconds - 3600 * hours
     minutes = int(seconds) / 60
-    seconds = seconds - 60*minutes
+    seconds = seconds - 60 * minutes
     return "%02d:%02d:%02d" % (hours, minutes, seconds)
 
-def draw_job_allocation(job_dict, min_start, max_end, savefile=None):
+def draw_job_allocation(job_dict, min_start, max_end, savefile = None):
     '''illustrate job allocation'''
     
     print "plotting: job allocation chart"
@@ -199,17 +198,17 @@ def draw_job_allocation(job_dict, min_start, max_end, savefile=None):
     for k, v in job_dict.iteritems():
         start = float(v["start"])
         end = float(v["end"])
-        (x,y)=get_width(v)
+        (x, y) = get_width(v)
         #width = get_width(v)
         #x = width[0]
         #y = width[1]
         #width[0]:x   start point on y-axes
         #width[1]:y   end point on y-axes
-        threshold_x = (end-start) / 40.0
+        threshold_x = (end - start) / 40.0
         threshold_y = 0
         current_color = get_color(y, x, start, end, threshold_x, threshold_y)
         add_rect(y, x, start, end, current_color)
-        ax.barh(x, end-start, y-x, start, facecolor=current_color)
+        ax.barh(x, end - start, y - x, start, facecolor = current_color)
      
     labels = []
     yticks = []
@@ -220,7 +219,7 @@ def draw_job_allocation(job_dict, min_start, max_end, savefile=None):
 	for j in range(0,8):
 	    labels.append("R" + str(i) + str(j))
 	    labels.append("")
-    ax.set_yticklabels(labels, fontsize=12)
+    ax.set_yticklabels(labels, fontsize = 12)
     ax.set_ylim(0, 80)
     
     inteval = time_total / 10
@@ -233,9 +232,9 @@ def draw_job_allocation(job_dict, min_start, max_end, savefile=None):
     for i in range(0, 11):
 	labels.append(time.asctime(time.localtime(timelist[i]))[4:-4])
     ax.set_xticks(timelist)
-    ax.set_xticklabels(labels, rotation=30, fontsize = 12)
+    ax.set_xticklabels(labels, rotation = 30, fontsize = 12)
     ax.set_xlim(min_start , max_end)
-    ax.set_xlabel('Time',fontsize=15)
+    ax.set_xlabel('Time',fontsize = 15)
     
     ax.grid(True)
     
@@ -249,12 +248,12 @@ def draw_job_allocation(job_dict, min_start, max_end, savefile=None):
     if SHOW:
         plt.show()
     
-def draw_live_jobs(job_dict, min_start, max_end, savefile=None):
+def draw_running_jobs(job_dict, min_start, max_end, savefile=None):
     '''plot number of waiting jobs and running jobs'''
-    print "plotting: waiting and running jobs"
+    print "plotting: running jobs"
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    plt.title("running jobs & waiting jobs")
+    plt.title("running jobs")
     inteval = (max_end-min_start) / 2000.0   # this may modified 
     timepoint = min_start
     timepoints = []
@@ -263,42 +262,19 @@ def draw_live_jobs(job_dict, min_start, max_end, savefile=None):
     for i in range(0, 2000):
         job_number = 0
         for k, v in job_dict.iteritems():
-            if float(v["start"])<timepoint and timepoint<float(v["end"]):
-                job_number = job_number+1
+            if float(v["start"]) < timepoint and timepoint < float(v["end"]):
+                job_number = job_number + 1
         if job_number > maxjob:
             maxjob = job_number
         job_numbers.append(job_number)
         timepoints.append(timepoint)
         timepoint = inteval + timepoint
-    ax.plot(timepoints, job_numbers, color="red")
-    ax.set_ylim(0, maxjob + maxjob*0.1, color="red")
-    ax.set_ylabel("running jobs", color="red")
-    
-    #waiting job axes
-    ax2 = ax.twinx()
-    inteval = (max_end-min_start) / 2000.0 #2000 points here
-    timepoint = min_start
-    timepoints = []
-    
-    wait_numbers = []
-    maxwait = 0
-    for i in range(0, 2000):
-        wait_number = 0
-        for k, spec in job_dict.iteritems():
-            if float(spec["qtime"]) < timepoint and timepoint < float(spec["start"]):
-                wait_number = wait_number+1
-        if wait_number > maxwait:
-            maxwait = wait_number
-        wait_numbers.append(wait_number)
-        timepoints.append(timepoint)
-        timepoint = inteval + timepoint
-    ax2.plot(timepoints, wait_numbers, color='blue')
-    ax2.set_ylim(0, maxwait+maxwait*0.1, color='blue')
-    ax2.set_ylabel('waiting jobs', color='blue')
+    ax.plot(timepoints, job_numbers, color = "red")
+    ax.set_ylim(0, maxjob + maxjob*0.1, color = "red")
 
-    ax.set_xlim( min_start , max_end )
-    time_total = max_end-min_start
-    inteval = time_total/10
+    ax.set_xlim( min_start, max_end )
+    time_total = max_end - min_start
+    inteval = time_total / 10
     timelist = []
     labels = [] 
     temptime = min_start
@@ -310,7 +286,7 @@ def draw_live_jobs(job_dict, min_start, max_end, savefile=None):
     for i in range(0, 11):
         labels[i] = labels[i][4:19]
     ax.set_xticks(timelist)
-    ax.set_xticklabels(labels, fontsize=6)
+    ax.set_xticklabels(labels, fontsize = 6)
     ax.set_xlabel('Time')
     ax.grid(True)
     
@@ -323,14 +299,66 @@ def draw_live_jobs(job_dict, min_start, max_end, savefile=None):
     
     if SHOW:
         plt.show()
-    
-def draw_sys_util(job_dict, min_start, max_end, savefile=None):
-    '''draw number of busy nodes and nodes requested by queuing jobs'''
-    print "plotting: system utilization"
+
+def draw_waiting_jobs(job_dict, min_start, max_end, savefile=None):     
+    """ draw waiting jobs""" 
+    print "plotting: waiting jobs"
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    plt.title("running jobs & waiting jobs")
-    inteval = (max_end - min_start)/2000.0   # this may modified 
+    plt.title("waiting jobs")
+    inteval = (max_end-min_start) / 2000.0   # this may modified 
+    timepoint = min_start
+    timepoints = []
+    wait_numbers = []
+    maxwait = 0
+    for i in range(0, 2000):
+        wait_number = 0
+        for k, spec in job_dict.iteritems():
+            if float(spec["qtime"]) < timepoint and timepoint < float(spec["start"]):
+                wait_number = wait_number + 1
+        if wait_number > maxwait:
+            maxwait = wait_number
+        wait_numbers.append(wait_number)
+        timepoints.append(timepoint)
+        timepoint = inteval + timepoint
+    ax.plot(timepoints, wait_numbers, color = 'red')
+    ax.set_ylim(0, maxwait+maxwait*0.1, color = 'red')
+
+    ax.set_xlim( min_start , max_end )
+    time_total = max_end-min_start
+    inteval = time_total / 10
+    timelist = []
+    labels = [] 
+    temptime = min_start
+    for i in range(0, 11):
+        timelist.append(temptime)
+        temptime = temptime + inteval
+    for i in range(0, 11):
+        labels.append(time.asctime(time.localtime(timelist[i])))
+    for i in range(0, 11):
+        labels[i] = labels[i][4:19]
+    ax.set_xticks(timelist)
+    ax.set_xticklabels(labels, fontsize = 6)
+    ax.set_xlabel('Time')
+    ax.grid(True)
+    
+    if savefile:
+        savefile += "-jobs.eps"
+    else:
+        savefile = "schedshow-jobs.edraw_job_allocationpnps"
+    
+    plt.savefig(savefile)
+    
+    if SHOW:
+        plt.show()
+
+def draw_running_nodes(job_dict, min_start, max_end, savefile = None):
+    '''draw number of busy nodes'''
+    print "plotting: system utilization-busy nodes"
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    plt.title("running nodes")
+    inteval = (max_end - min_start) / 2000.0   # this may modified 
     timepoint = min_start
     timepoints = []
     job_nodes = []
@@ -345,16 +373,46 @@ def draw_sys_util(job_dict, min_start, max_end, savefile=None):
         job_nodes.append(job_node)
         timepoints.append(timepoint)
         timepoint = inteval + timepoint
-    ax.plot(timepoints, job_nodes, color="red")
-    ax.set_ylim(0, maxjobnode+maxjobnode*0.1, color="red")
-    ax.set_ylabel("running jobs", color="red")
+    ax.plot(timepoints, job_nodes, color = "red")
+    ax.set_ylim(0, maxjobnode + maxjobnode*0.1, color = "red")
+    # plot for x axes and its labels
+    ax.set_xlim(min_start, max_end)
+    time_total = max_end - min_start
+    inteval = time_total / 10
+    timelist = []
+    labels = []
+    temptime = min_start
+    for i in range(0, 11):
+        timelist.append(temptime)
+        temptime = temptime + inteval
+    for i in range(0, 11):
+        labels.append(time.asctime(time.localtime(timelist[i])))
+    for i in range(0, 11):
+        labels[i] = labels[i][4:19]
+    ax.set_xticks(timelist)
+    ax.set_xticklabels(labels, fontsize = 6)
+    ax.set_xlabel('Time')
+    ax.grid(True)
     
-    #waiting job axes
-    ax2 = ax.twinx()
-    inteval = (max_end - min_start) / 2000.0 #2000 points here
+    if savefile:
+        savefile += "-sysutil-busy.eps"
+    else:
+        savefile = "schedshow-sysutil-busy.eps"
+    
+    plt.savefig(savefile)
+    
+    if SHOW:
+        plt.show()
+   
+def draw_waiting_nodes(job_dict, min_start, max_end, savefile=None):  
+    """ show requested nodes"""
+    print "plotting: system utilization-requested"
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    plt.title("waiting nodes")
+    inteval = (max_end - min_start)/2000.0   # this may modified 
     timepoint = min_start
     timepoints = []
-    
     wait_nodes = []
     maxwaitnode = 0
     for i in range(0, 2000):
@@ -367,14 +425,12 @@ def draw_sys_util(job_dict, min_start, max_end, savefile=None):
         wait_nodes.append(wait_node)
         timepoints.append(timepoint)
         timepoint = inteval + timepoint
-    ax2.plot(timepoints, wait_nodes, color='blue')
-    ax2.set_ylim(0, maxwaitnode + maxwaitnode*0.1)
-    ax2.set_ylabel('waiting jobs', color='blue')
-   
-    # plot for x axes and its labels
+    ax.plot(timepoints, wait_nodes, color = 'red')
+    ax.set_ylim(0, maxwaitnode + maxwaitnode * 0.1)
+    # x axess 
     ax.set_xlim(min_start , max_end)
     time_total = max_end - min_start
-    inteval = time_total/10
+    inteval = time_total / 10
     timelist = []
     labels = []
     temptime = min_start
@@ -386,25 +442,28 @@ def draw_sys_util(job_dict, min_start, max_end, savefile=None):
     for i in range(0, 11):
         labels[i] = labels[i][4:19]
     ax.set_xticks(timelist)
-    ax.set_xticklabels(labels, fontsize=6)
+    ax.set_xticklabels(labels, fontsize = 6)
     ax.set_xlabel('Time')
     ax.grid(True)
     
     if savefile:
-        savefile += "-sysutil.eps"
+        savefile += "-sysutil-requested.eps"
     else:
-        savefile = "schedshow-sysutil.eps"
+        savefile = "schedshow-sysutil-requested.eps"
     
     plt.savefig(savefile)
     
     if SHOW:
         plt.show()
-        
+   
+ 
+   
 metric_header = ["Avg", "Max", "99th", "90th", "80th", "Median", "Min"]
 
 def print_header():
     for item in metric_header:
 	print item, '\t',
+<<<<<<< HEAD
 
 happy_dict={} #temp
 
@@ -580,6 +639,8 @@ def show_size_metrics(job_dict):
         print '\n'
     else:
         print "There is no Very Large Job\n"
+=======
+>>>>>>> 48b19382e27163795f988779f872174e53b875c2
 
 # some globle arguments
 
@@ -949,6 +1010,7 @@ def get_idle_midplanes(time):
     for i in range(0, len(rec_list)):
         if rec_list[i].get_3 < time and time < rec_list[i].get_4:
             midplannes -= (rec_list[i].get_1 - rec_list[i].get_2)
+            print rec_list[i].get_1 - rec_list[i].get_2
     return midplanes
  
 def if_job_waiting(time):
@@ -1023,9 +1085,21 @@ if __name__ == "__main__":
     p.add_option("-j", "--jobs", dest = "jobs", action = "store_true", \
 		    default = False, \
 		    help = "show number of waiting & running jobs")
+    p.add_option("--wj", dest = "waiting_jobs", action = "store_true", \
+                    default = False, \
+                    help = "show waiting jobs")
+    p.add_option("--rj", dest = "running_jobs", action = "store_true", \
+                    default = False, \
+                    help = "show running jobs")
     p.add_option("-n", "--nodes", dest = "nodes", action = "store_true", \
 		    default = False, \
                     help = "show number of waiting $ running nodes")
+    p.add_option("--wn", dest = "waiting_nodes", action = "store_true", \
+                    default = False, \
+                    help = "show busy nodes")
+    p.add_option("--rn", dest = "running_nodes", action = "store_true", \
+                    default = False, \
+                    help = "show requested jobs")
     p.add_option("-r", dest = "response", action = "store_true", \
 		    default = False, \
                     help = "print response time to terminal")
@@ -1073,7 +1147,10 @@ if __name__ == "__main__":
         
     if opts.metrics:
         opts.size = opts.response = opts.slowdown = opts.wait = opts.uwait = True
-        
+    if opts.jobs:
+        opts.running_jobs = opts.waiting_jobs = True 
+    if opts.nodes:
+        opts.running_nodes = opts.waiting_nodes = True
     if opts.savefile:
         savefilename = opts.savefile
     else:
@@ -1111,11 +1188,17 @@ if __name__ == "__main__":
     if opts.alloc:
         draw_job_allocation(job_dict, first_submit, last_end, savefilename)
 #print running & waiting jobs
-    if opts.jobs:
-        draw_live_jobs(job_dict, first_submit, last_end, savefilename)
-#-n print running & waiting nodes
-    if opts.nodes:
-        draw_sys_util(job_dict, first_submit, last_end, savefilename)
+    if opts.waiting_jobs:
+        draw_waiting_jobs(job_dict, first_submit, last_end, savefilename)
+    if opts.running_jobs:
+        draw_running_jobs(job_dict, first_submit, last_end, savefilename) 
+# print running & waiting nodes
+    if opts.waiting_nodes:
+        draw_waiting_nodes(job_dict, first_submit, last_end, savefilename)
+    if opts.running_nodes:
+        draw_running_nodes(job_dict, first_submit, last_end, savefilename) 
+   
+
 
     endtime_sec = time.time()
     print "---Analysis and plotting are finished, \
