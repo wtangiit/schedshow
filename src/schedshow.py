@@ -191,24 +191,24 @@ def tune_workload(specs, frac = 1, anchor = 0):
    #calc intervals (the first job's interval=0)
    lastsubtime = 0
    for spec in specs:
-       if (lastsubtime==0):
+       if (lastsubtime == 0):
            interval = 0
        else:
-           interval = spec['submittime'] - lastsubtime
-       lastsubtime =  spec['submittime']
+           interval = float(spec['qtime']) - float(lastsubtime)
+       lastsubtime = float(spec['qtime'])
        spec['interval'] = interval
 
    #if anchor is specified, set the first job submission time to anchor
    if anchor:
-       specs[0]['submittime'] = anchor
+       specs[0]['qtime'] = anchor
    else:
        pass
 
-   last_newsubtime = specs[0].get('submittime')
+   last_newsubtime = float(specs[0].get('qtime'))
    for spec in specs:
-       interval = spec['interval']
+       interval = float(spec['interval'])
        newsubtime = last_newsubtime + frac * interval
-       spec['submittime'] = newsubtime
+       spec['qtime'] = newsubtime
        spec['interval'] = frac * interval
        last_newsubtime = newsubtime
    return specs
@@ -227,9 +227,12 @@ def sort_dict_qtime(job_dict):
        sorted_list.append(temp_dict[key])
     return sorted_list
 
-def write_file(job_dict): # dictionary have to be sorted by qtime
+def write_alt(job_dict, filename = None): 
     """ convert a PBS style log into alternate format """
-    filename = "newlog.log"
+    if filename:
+        filename += "-alternate.log"
+    else:
+        filename = "schedshow-alternate.log"
     FILE = open(filename, "w")
     sorted_list = sort_dict_qtime(job_dict)
     for value in sorted_list: 
@@ -245,6 +248,28 @@ def write_file(job_dict): # dictionary have to be sorted by qtime
             nodes, walltime)
         FILE.write(line)
     FILE.close() 
+
+def write_util_alt(job_dict, total_sec, util = None):
+    filename = str(util) + "-util-alt.log"
+    FILE = open(filename, "w")
+    fraction = calculate_sys_util(job_dict, total_sec) / float(util)
+    print "fraction is: ", fraction
+    sorted_value_list = sort_dict_qtime(job_dict)
+    alt_value_list = tune_workload(sorted_value_list, fraction)
+    for value in alt_value_list: 
+        jobid = "jobid=" + value["jobid"]
+        qtime = "qtime=" + str(value["qtime"])
+        start = "start=" + value["start"]
+        end = "end=" + value["end"]
+        host = "exec_host=" + value["exec_host"]
+        nodes = "nodes=" + value["Resource_List.nodect"]
+        walltime ="walltime=" + value["Resource_List.walltime"]
+        #nodes = "nodes=" + val[]
+        line="%s;%s;%s;%s;%s;%s;%s\n" % (jobid, qtime, start, end, host, \
+            nodes, walltime)
+        FILE.write(line)
+    FILE.close() 
+
 
 
 
@@ -353,9 +378,9 @@ def draw_running_jobs(job_dict, min_start, max_end, savefile=None):
     ax.grid(True)
     
     if savefile:
-        savefile += "-jobs.eps"
+        savefile += "-jobs-running.eps"
     else:
-        savefile = "schedshow-jobs.edraw_job_allocationpnps"
+        savefile = "schedshow-jobs-running.eps"
     
     plt.savefig(savefile)
     
@@ -406,9 +431,9 @@ def draw_waiting_jobs(job_dict, min_start, max_end, savefile=None):
     ax.grid(True)
     
     if savefile:
-        savefile += "-jobs.eps"
+        savefile += "-jobs-waiting.eps"
     else:
-        savefile = "schedshow-jobs.edraw_job_allocationpnps"
+        savefile = "schedshow-jobs-waiting.eps"
     
     plt.savefig(savefile)
     
@@ -593,7 +618,7 @@ def show_resp(job_dict):
     
     total = 0.0
     for k, spec in job_dict.iteritems():
-        temp  = (float(spec["end"])-float(spec["qtime"])) / 60
+        temp  = (float(spec["end"]) - float(spec["qtime"])) / 60
         total += temp
         value_list.append(round(temp, 1))
     
@@ -891,10 +916,15 @@ def calculate_sys_util(job_dict, total_sec):
         busy_node_sec += node_sec
         
     sysutil = busy_node_sec / (total_sec * total_nodes)
+    return sysutil
     
+
+def show_sys_util(job_dict, total_sec):
+    """ print sys util"""
+    sysutil = calculate_sys_util(job_dict, total_sec)
     print "system utilization rate = ", sysutil
-    
     print '\n'
+    
 
 def loss_of_capacity(job_dict):
     """ Show loss of capacity. Two sub fuction is used: 
@@ -998,8 +1028,8 @@ def show_cosched_metrics(job_dict, total_sec):
         
 if __name__ == "__main__":
     p = OptionParser()
-    p.add_option("-l", dest = "logfile", type="string", 
-                 help = "path of log file (required)")
+    p.add_option("-l", dest = "logfile", type = "string", 
+                    help = "path of log file (required)")
     p.add_option("-a", "--alloc", dest = "alloc", \
 		    action = "store_true", \
 		    default = False, \
@@ -1057,10 +1087,10 @@ if __name__ == "__main__":
     p.add_option("--loss", dest = "loss_of_cap", \
 		    action = "store_true", \
                     default = False, help = "show loss_of_cap")
-    p.add_option("--write", dest = "write", action = "store_true", \
-                    default = False, help = "write log in alternative form")
-    #p.add_option("-z", "--size", dest = "size", action = "store_true", \
-    #                default = False, help = "show job number of different size")
+    p.add_option("--alt", dest = "alt", type = "string", \
+                    help = "write log in alternative form. A filename needed")
+    p.add_option("--util", dest = "util_alt", type = "string", \
+                    help = "write new log accroding to new util rate")
     p.add_option("-A", "--All", dest = "run_all", action = "store_true", \
                     default = False,  help = "run all functions")
 
@@ -1072,12 +1102,12 @@ if __name__ == "__main__":
         exit()
         
     if opts.run_all:
-        opts.alloc = opts.jobs = opts.nodes = opts.size = opts.response = \
+        opts.alloc = opts.jobs = opts.nodes = opts.response = \
         opts.slowdown = opts.wait = opts.uwait = opts.happy = \
 	opts.loss_of_cap = True
         
     if opts.metrics:
-        opts.size = opts.response = opts.slowdown = opts.wait = \
+        opts.response = opts.slowdown = opts.wait = \
         opts.uwait = True
     if opts.jobs:
         opts.running_jobs = opts.waiting_jobs = True 
@@ -1094,15 +1124,11 @@ if __name__ == "__main__":
     starttime_sec = time.time()
         
     (job_dict, first_submit, first_start, last_end) = parseLogFile(opts.logfile)
-
+    
     print "number of jobs:", len(job_dict.keys())
    
     show_size(job_dict)
     
-    #test
-
-    #if opts.size:
-    #    show_size(job_dict)
     if opts.response:
         show_all_resp(job_dict)
     if opts.wait:
@@ -1115,13 +1141,16 @@ if __name__ == "__main__":
     if opts.cosched:
     	show_cosched_metrics(job_dict, last_end - first_submit)
     if opts.metrics:
-        calculate_sys_util(job_dict, last_end - first_submit)
+        show_sys_util(job_dict, last_end - first_submit)
     if opts.loss_of_cap:
         loss_of_capacity(job_dict) 
     if opts.happy:
 	happy_job(job_dict)
-    if opts.write:
-        write_file(job_dict)
+
+    if opts.alt:
+        write_alt(job_dict, opts.alt)
+    if opts.util_alt:
+        write_util_alt(job_dict, last_end - first_submit, opts.util_alt)
 #print color_bars
     if opts.alloc:
         draw_job_allocation(job_dict, first_submit, last_end, savefilename)
