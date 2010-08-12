@@ -277,10 +277,10 @@ def draw_job_allocation(job_dict, min_start, max_end, savefile = None):
     for i in range(0, 80):
         yticks.append(i)
     ax.set_yticks(yticks)
-    for i in range(0,5):
-	for j in range(0,8):
-	    labels.append("R" + str(i) + str(j))
-	    labels.append("")
+    for i in range(0, 5):
+        for j in range(0, 8):
+            labels.append("R" + str(i) + str(j))
+            labels.append("")
     ax.set_yticklabels(labels, fontsize = 12)
     ax.set_ylim(0, 80)
     
@@ -292,11 +292,11 @@ def draw_job_allocation(job_dict, min_start, max_end, savefile = None):
         timelist.append(temptime)
         temptime = temptime + inteval
     for i in range(0, 11):
-	labels.append(time.asctime(time.localtime(timelist[i]))[4:-4])
+        labels.append(time.asctime(time.localtime(timelist[i]))[4:-4])
     ax.set_xticks(timelist)
     ax.set_xticklabels(labels, rotation = 30, fontsize = 12)
     ax.set_xlim(min_start , max_end)
-    ax.set_xlabel('Time',fontsize = 15)
+    ax.set_xlabel('Time', fontsize = 15)
     
     ax.grid(True)
     
@@ -376,7 +376,8 @@ def draw_waiting_jobs(job_dict, min_start, max_end, savefile=None):
     for i in range(0, 2000):
         wait_number = 0
         for k, spec in job_dict.iteritems():
-            if float(spec["qtime"]) < timepoint and timepoint < float(spec["start"]):
+            if float(spec["qtime"]) < timepoint \
+			    and timepoint < float(spec["start"]):
                 wait_number = wait_number + 1
         if wait_number > maxwait:
             maxwait = wait_number
@@ -428,7 +429,8 @@ def draw_running_nodes(job_dict, min_start, max_end, savefile = None):
     for i in range(0, 2000):
         job_node = 0
         for k, spec in job_dict.iteritems():
-            if float(spec["start"]) < timepoint and timepoint < float(spec["end"]):
+            if float(spec["start"]) < timepoint \
+			    and timepoint < float(spec["end"]):
                 job_node = job_node + int(spec["Resource_List.nodect"])
         if job_node > maxjobnode:
             maxjobnode = job_node
@@ -480,7 +482,8 @@ def draw_waiting_nodes(job_dict, min_start, max_end, savefile=None):
     for i in range(0, 2000):
         wait_node = 0
         for k, spec in job_dict.iteritems():
-            if float(spec["qtime"]) < timepoint and timepoint < float(spec["start"]):
+            if float(spec["qtime"]) < timepoint \
+			    and timepoint < float(spec["start"]):
                 wait_node = wait_node + int(spec["Resource_List.nodect"])
         if wait_node > maxwaitnode:
             maxwaitnode = wait_node
@@ -526,31 +529,31 @@ def print_header():
     for item in metric_header:
 	print item, '\t',
 
-happy_dict={} #temp
+happy_dict = {} #temp
 
 def happy_job(job_dict):
     '''show if the job is a happy job or not'''
     count = 0
     for k, val in job_dict.iteritems():
-	jobid = val["jobid"]
-	qtime = float(val["qtime"])
-	stime = float(val["start"])
-	size1 = int(val["exec_host"].split("-")[-1])
-	prrty1 = (1/float(val["walltime"])) ** 3 * float(size1)
-	end = []
-	for k, val in job_dict.iteritems():
-	    if qtime >= float(val["qtime"]) and jobid != val["jobid"]:
-	       waittime = qtime - float(val["qtime"])
-	       size = int(val["exec_host"].split("-")[-1])
-	       prrty2 = ((1+waittime)/float(val["walltime"])) ** 3 * float(size)
-	       if prrty2 > prrty1:
+        jobid = val["jobid"]
+        qtime = float(val["qtime"])
+        stime = float(val["start"])
+        size1 = int(val["exec_host"].split("-")[-1])
+        prrty1 = (1/float(val["walltime"])) ** 3 * float(size1)
+        end = []
+        for k, val in job_dict.iteritems():
+            if qtime >= float(val["qtime"]) and jobid != val["jobid"]:
+               waittime = qtime - float( val["qtime"])
+               size = int(val["exec_host"].split("-")[-1])
+               prrty2 = ((1+waittime)/float(val["walltime"])) ** 3 * float(size)
+               if prrty2 > prrty1:
                   end.append(val["end"])
         end.sort()
-	if len(end) == 0:
-	    happy_dict[jobid] = val
+        if len(end) == 0:
+            happy_dict[jobid] = val
             count = count + 1
-	elif stime <= end[len(end)-1]:
-	    happy_dict[jobid] = val
+        elif stime <= end[len(end)-1]:
+            happy_dict[jobid] = val
             count = count + 1
     print "The number of happy jobs : ", count
 	          
@@ -882,7 +885,9 @@ def calculate_sys_util(job_dict, total_sec):
             nodes = len(host.split(':'))
             total_nodes = 100
         node_sec = nodes * runtime
-        #print "jobid=%s, nodes=%s, runtime=%s, location=%s" % (spec['jobid'], nodes, runtime, spec['exec_host'])
+        #print "jobid=%s, nodes=%s, runtime=%s, 
+	#location=%s" % (spec['jobid'], nodes, 
+	#runtime, spec['exec_host'])
         busy_node_sec += node_sec
         
     sysutil = busy_node_sec / (total_sec * total_nodes)
@@ -928,88 +933,99 @@ def get_idle_midplanes(time):
 def if_job_waiting(time):
     """ return if exist a waiting job at a specific time """
     flag = False 
-    for key,val in job_dict.iteritems():
+    for key, val in job_dict.iteritems():
         if float(val["qtime"]) < time and time < float(val["start"]):
             flag = True
     return flag
     
 def show_cosched_metrics(job_dict, total_sec):
-	'''calculate coscheduling metrics.'''
-	total_hold_time = 0
-	total_hold_job = 0
-	total_yield_time = 0
-	total_yield_job = 0
-	wasted_node_hour = 0
-	hold_list = []
-	yield_list = []
+        '''calculate coscheduling metrics.'''
+        total_hold_time = 0
+        total_hold_job = 0
+        total_yield_time = 0
+        total_yield_job = 0
+        wasted_node_hour = 0
+        hold_list = []
+        yield_list = []
 	
-	total_nodes = 1
+        total_nodes = 1
 	
-	for k, spec in job_dict.iteritems():
-		holding = float(spec["hold"])
-		yielding = float(spec.get("yield", 0))
-		if holding > 0:
-			total_hold_time += holding / 60
-			total_hold_job += 1
-			hold_list.append(holding / 60)
+        for k, spec in job_dict.iteritems():
+                holding = float(spec["hold"])
+                yielding = float(spec.get("yield", 0))
+                if holding > 0:
+                        total_hold_time += holding / 60
+                        total_hold_job += 1
+                        hold_list.append(holding / 60)
 			
-			host = spec["exec_host"]
-			if host[0] == 'A': #intrepid
-				nodes = int(host.split("-")[-1])
-				total_nodes = 40960
-			elif host[0] == 'n':
-				nodes = len(host.split(':'))
-				total_nodes = 100
-			wasted_node_hour += (nodes * holding) / 3600
+                        host = spec["exec_host"]
+                        if host[0] == 'A': #intrepid
+                                nodes = int(host.split("-")[-1])
+                                total_nodes = 40960
+                        elif host[0] == 'n':
+                                nodes = len(host.split(':'))
+                                total_nodes = 100
+                        wasted_node_hour += (nodes * holding) / 3600
 						 
-		if yielding > 0:
-			total_yield_time += yielding / 60
-			total_yield_job += 1
-			yield_list.append(yielding / 60)
+                if yielding > 0:
+                        total_yield_time += yielding / 60
+                        total_yield_job += 1
+                        yield_list.append(yielding / 60)
 	
-	waisted_sys_util = wasted_node_hour / (total_sec * total_nodes / 3600)
+        waisted_sys_util = wasted_node_hour / (total_sec * total_nodes / 3600)
 	
-	if total_hold_job > 0:
-		hold_list.sort()
-		print "total holding job:", total_hold_job
-		print "average holding time (min):", total_hold_time / total_hold_job
-		print "median holding time (min):", hold_list[total_hold_job/2]
-		print "maximum holding time (min):", max(hold_list)
-		print "total waisted node-hour:", wasted_node_hour
-		print "total waisted sysutil:", waisted_sys_util
+        if total_hold_job > 0:
+                hold_list.sort()
+                print "total holding job:", total_hold_job
+                print "average holding time (min):", \
+				total_hold_time / total_hold_job
+                print "median holding time (min):", \
+				hold_list[total_hold_job/2]
+                print "maximum holding time (min):", max(hold_list)
+                print "total waisted node-hour:", wasted_node_hour
+                print "total waisted sysutil:", waisted_sys_util
 	
-	if total_yield_job > 0:
-		yield_list.sort()
-		total_yield_time /= 60
-		print "total yield job:", total_yield_job
-		print "average yield time (min):", total_yield_time / total_yield_job
-		print "median yield time (min):", yield_list[total_yield_job/2]
-		print "maximum yield time (min):", max(yield_list)
+        if total_yield_job > 0:
+                yield_list.sort()
+                total_yield_time /= 60
+                print "total yield job:", total_yield_job
+                print "average yield time (min):", \
+				total_yield_time / total_yield_job
+                print "median yield time (min):", \
+				yield_list[total_yield_job/2]
+                print "maximum yield time (min):", max(yield_list)
 
         
 if __name__ == "__main__":
     p = OptionParser()
     p.add_option("-l", dest = "logfile", type="string", 
                  help = "path of log file (required)")
-    p.add_option("-a", "--alloc", dest = "alloc", action = "store_true", \
+    p.add_option("-a", "--alloc", dest = "alloc", \
+		    action = "store_true", \
 		    default = False, \
 		    help="plot bars represent for individual jobs ")
-    p.add_option("-j", "--jobs", dest = "jobs", action = "store_true", \
+    p.add_option("-j", "--jobs", dest = "jobs", \
+		    action = "store_true", \
 		    default = False, \
 		    help = "show number of waiting & running jobs")
-    p.add_option("--wj", dest = "waiting_jobs", action = "store_true", \
+    p.add_option("--wj", dest = "waiting_jobs", \
+		    action = "store_true", \
                     default = False, \
                     help = "show waiting jobs")
-    p.add_option("--rj", dest = "running_jobs", action = "store_true", \
+    p.add_option("--rj", dest = "running_jobs", \
+		    action = "store_true", \
                     default = False, \
                     help = "show running jobs")
-    p.add_option("-n", "--nodes", dest = "nodes", action = "store_true", \
+    p.add_option("-n", "--nodes", dest = "nodes", \
+		    action = "store_true", \
 		    default = False, \
                     help = "show number of waiting $ running nodes")
-    p.add_option("--wn", dest = "waiting_nodes", action = "store_true", \
+    p.add_option("--wn", dest = "waiting_nodes", \
+		    action = "store_true", \
                     default = False, \
                     help = "show busy nodes")
-    p.add_option("--rn", dest = "running_nodes", action = "store_true", \
+    p.add_option("--rn", dest = "running_nodes", \
+		    action = "store_true", \
                     default = False, \
                     help = "show requested jobs")
     p.add_option("-r", dest = "response", action = "store_true", \
@@ -1038,7 +1054,8 @@ if __name__ == "__main__":
     p.add_option("-s", dest = "show", action = "store_true", \
 		    default = False,
                     help = "show plot on the screen")
-    p.add_option("--loss", dest = "loss_of_cap", action = "store_true", \
+    p.add_option("--loss", dest = "loss_of_cap", \
+		    action = "store_true", \
                     default = False, help = "show loss_of_cap")
     p.add_option("--write", dest = "write", action = "store_true", \
                     default = False, help = "write log in alternative form")
