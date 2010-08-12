@@ -217,9 +217,9 @@ def sort_dict_qtime(job_dict):
     """ return a sorted-by-qtime list with job data"""
     temp_dict = {}
     sorted_list = []
-    for k,val in job_dict.iteritems():
+    for key, val in job_dict.iteritems():
         temp_dict[val["qtime"]] = val
-    for k,val in temp_dict.iteritems():
+    for key, val in temp_dict.iteritems():
         temp_dict[val["qtime"]] = val
     key_list = temp_dict.keys()
     key_list.sort()
@@ -244,7 +244,8 @@ def write_alt(job_dict, filename = None):
         nodes = "nodes=" + value["Resource_List.nodect"]
         walltime ="walltime=" + value["Resource_List.walltime"]
         #nodes = "nodes=" + val[]
-        line="%s;%s;%s;%s;%s;%s;%s\n" % (jobid, qtime, start, end, host, \
+        line = "%s;%s;%s;%s;%s;%s;%s\n" \
+			% (jobid, qtime, start, end, host, \
             nodes, walltime)
         FILE.write(line)
     FILE.close() 
@@ -552,7 +553,7 @@ metric_header = ["Avg", "Max", "99th", "90th", "80th", "Median", "Min"]
 
 def print_header():
     for item in metric_header:
-	print item, '\t',
+        print item, '\t',
 
 happy_dict = {} #temp
 
@@ -1123,7 +1124,8 @@ if __name__ == "__main__":
 
     starttime_sec = time.time()
         
-    (job_dict, first_submit, first_start, last_end) = parseLogFile(opts.logfile)
+    (job_dict, first_submit, first_start, last_end) = \
+        parseLogFile(opts.logfile)
     
     print "number of jobs:", len(job_dict.keys())
    
@@ -1139,7 +1141,7 @@ if __name__ == "__main__":
     if opts.uwait:
         show_all_uwait(job_dict)
     if opts.cosched:
-    	show_cosched_metrics(job_dict, last_end - first_submit)
+        show_cosched_metrics(job_dict, last_end - first_submit)
     if opts.metrics:
         show_sys_util(job_dict, last_end - first_submit)
     if opts.loss_of_cap:
