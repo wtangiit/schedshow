@@ -217,9 +217,9 @@ def sort_dict_qtime(job_dict):
     """ return a sorted-by-qtime list with job data"""
     temp_dict = {}
     sorted_list = []
-    for k,val in job_dict.iteritems():
+    for key, val in job_dict.iteritems():
         temp_dict[val["qtime"]] = val
-    for k,val in temp_dict.iteritems():
+    for key, val in temp_dict.iteritems():
         temp_dict[val["qtime"]] = val
     key_list = temp_dict.keys()
     key_list.sort()
@@ -241,7 +241,8 @@ def write_file(job_dict): # dictionary have to be sorted by qtime
         nodes = "nodes=" + value["Resource_List.nodect"]
         walltime ="walltime=" + value["Resource_List.walltime"]
         #nodes = "nodes=" + val[]
-        line="%s;%s;%s;%s;%s;%s;%s\n" % (jobid, qtime, start, end, host, \
+        line = "%s;%s;%s;%s;%s;%s;%s\n" \
+			% (jobid, qtime, start, end, host, \
             nodes, walltime)
         FILE.write(line)
     FILE.close() 
@@ -527,7 +528,7 @@ metric_header = ["Avg", "Max", "99th", "90th", "80th", "Median", "Min"]
 
 def print_header():
     for item in metric_header:
-	print item, '\t',
+        print item, '\t',
 
 happy_dict = {} #temp
 
@@ -1060,7 +1061,8 @@ if __name__ == "__main__":
     p.add_option("--write", dest = "write", action = "store_true", \
                     default = False, help = "write log in alternative form")
     #p.add_option("-z", "--size", dest = "size", action = "store_true", \
-    #                default = False, help = "show job number of different size")
+    #                default = False, help = "show job number \
+    #                of different size")
     p.add_option("-A", "--All", dest = "run_all", action = "store_true", \
                     default = False,  help = "run all functions")
 
@@ -1072,9 +1074,9 @@ if __name__ == "__main__":
         exit()
         
     if opts.run_all:
-        opts.alloc = opts.jobs = opts.nodes = opts.size = opts.response = \
-        opts.slowdown = opts.wait = opts.uwait = opts.happy = \
-	opts.loss_of_cap = True
+        opts.alloc = opts.jobs = opts.nodes = opts.size = opts.response \
+			= opts.slowdown = opts.wait = opts.uwait \
+			= opts.happy = opts.loss_of_cap = True
         
     if opts.metrics:
         opts.size = opts.response = opts.slowdown = opts.wait = \
@@ -1093,7 +1095,8 @@ if __name__ == "__main__":
 
     starttime_sec = time.time()
         
-    (job_dict, first_submit, first_start, last_end) = parseLogFile(opts.logfile)
+    (job_dict, first_submit, first_start, last_end) \
+		    = parseLogFile(opts.logfile)
 
     print "number of jobs:", len(job_dict.keys())
    
@@ -1113,13 +1116,13 @@ if __name__ == "__main__":
     if opts.uwait:
         show_all_uwait(job_dict)
     if opts.cosched:
-    	show_cosched_metrics(job_dict, last_end - first_submit)
+        show_cosched_metrics(job_dict, last_end - first_submit)
     if opts.metrics:
         calculate_sys_util(job_dict, last_end - first_submit)
     if opts.loss_of_cap:
         loss_of_capacity(job_dict) 
     if opts.happy:
-	happy_job(job_dict)
+        happy_job(job_dict)
     if opts.write:
         write_file(job_dict)
 #print color_bars
