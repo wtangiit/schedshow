@@ -94,8 +94,6 @@ def get_width(line_data_dictionary):
     else:                # For case 1 & 3:
         x1 = 16 * int(x[0:1]) + 2 * int(x[1:2])
         y1 = 16 * int(y[0:1]) + 2 * int(y[1:2]) + 2
-    #two.append(x1)
-    #two.append(y1)
     return x1, y1
 
 def date_to_sec(fmtdate, dateformat = "%m/%d/%Y %H:%M:%S"):
@@ -185,6 +183,70 @@ def getInHMS(seconds):
     minutes = int(seconds) / 60
     seconds = seconds - 60 * minutes
     return "%02d:%02d:%02d" % (hours, minutes, seconds)
+
+def tune_workload(specs, frac = 1, anchor = 0):
+   '''tune workload heavier or lighter, and adjust the start \
+   time to anchor, specs should be sorted by submission time'''
+
+   #calc intervals (the first job's interval=0)
+   lastsubtime = 0
+   for spec in specs:
+       if (lastsubtime==0):
+           interval = 0
+       else:
+           interval = spec['submittime'] - lastsubtime
+       lastsubtime =  spec['submittime']
+       spec['interval'] = interval
+
+   #if anchor is specified, set the first job submission time to anchor
+   if anchor:
+       specs[0]['submittime'] = anchor
+   else:
+       pass
+
+   last_newsubtime = specs[0].get('submittime')
+   for spec in specs:
+       interval = spec['interval']
+       newsubtime = last_newsubtime + frac * interval
+       spec['submittime'] = newsubtime
+       spec['interval'] = frac * interval
+       last_newsubtime = newsubtime
+   return specs
+
+def sort_dict_qtime(job_dict):
+    """ return a sorted-by-qtime list with job data"""
+    temp_dict = {}
+    sorted_list = []
+    for k,val in job_dict.iteritems():
+        temp_dict[val["qtime"]] = val
+    for k,val in temp_dict.iteritems():
+        temp_dict[val["qtime"]] = val
+    key_list = temp_dict.keys()
+    key_list.sort()
+    for key in key_list:
+       sorted_list.append(temp_dict[key])
+    return sorted_list
+
+def write_file(job_dict): # dictionary have to be sorted by qtime
+    """ convert a PBS style log into alternate format """
+    filename = "newlog.log"
+    FILE = open(filename, "w")
+    sorted_list = sort_dict_qtime(job_dict)
+    for value in sorted_list: 
+        jobid = "jobid=" + value["jobid"]
+        qtime = "qtime=" + value["qtime"]
+        start = "start=" + value["start"]
+        end = "end=" + value["end"]
+        host = "exec_host=" + value["exec_host"]
+        nodes = "nodes=" + value["Resource_List.nodect"]
+        walltime ="walltime=" + value["Resource_List.walltime"]
+        #nodes = "nodes=" + val[]
+        line="%s;%s;%s;%s;%s;%s;%s\n" % (jobid, qtime, start, end, host, \
+            nodes, walltime)
+        FILE.write(line)
+    FILE.close() 
+
+
 
 def draw_job_allocation(job_dict, min_start, max_end, savefile = None):
     '''illustrate job allocation'''
@@ -463,7 +525,6 @@ metric_header = ["Avg", "Max", "99th", "90th", "80th", "Median", "Min"]
 def print_header():
     for item in metric_header:
 	print item, '\t',
-<<<<<<< HEAD
 
 happy_dict={} #temp
 
@@ -493,155 +554,6 @@ def happy_job(job_dict):
             count = count + 1
     print "The number of happy jobs : ", count
 	          
-
-
-def show_size_metrics(job_dict):
-    """ show all metrics"""
-    very_small = []
-    small = []
-    large = []
-    very_large = []
-    for k, val in job_dict.iteritems():
-        host = val["exec_host"].rsplit("-")
-        if len(host) == 4:
-            size = host[3]
-        else:
-            size = host[2]
-        if size == "512":
-            very_small.append(val)
-        elif "1024" <= size and size <= "2048":
-            small.append(val)
-        elif "4096" <= size and size <= "8192":
-            large.append(val)
-        elif "16384" <= size and size <= "32768":
-            very_large.append(val)
-    # now jobs are classified. VS V L VL.
-    # very small part
-    vs_resp_list = []
-    total = 0.0
-    for item in very_small:
-        resp = (float(item["end"]) - float(item["qtime"])) / 60.0
-        total += resp
-        vs_resp_list.append(round(resp, 1))
-    # response time stored into list vs_resp_list
-    if len(vs_resp_list) != 0:
-        average = round(total / float(len(vs_resp_list)), 2)
-        vs_resp_list.sort()
-        maximum = vs_resp_list[len(vs_resp_list) - 1]
-        median = vs_resp_list[len(vs_resp_list) / 2]
-        index = int(len(vs_resp_list) * 0.99)
-        percentile_99 = vs_resp_list[index]
-        index = int(len(vs_resp_list) * 0.90)
-        percentile_90 = vs_resp_list[index]
-        index = int(len(vs_resp_list) * 0.80)
-        percentile_80 = vs_resp_list[index]
-        minimum = vs_resp_list[0]
-        
-        print "Very Small Job (",len(vs_resp_list) , ") Resp time (min)"
-        print_header()
-        print '\r'
-        print "%s\t%s\t%s\t%s\t%s\t%s\t%s" \
-         % (average, maximum, percentile_99, \
-            percentile_90, percentile_80, median, minimum)
-        print '\n'
-    else:
-        print "There is no Very Small Job\n"
-
-    # Small job part
-    small_resp_list = []
-    total = 0.0
-    for item in small:
-        resp = (float(item["end"]) - float(item["qtime"])) / 60.0
-        total += resp
-        small_resp_list.append(round(resp, 1))
-    # response time stored into list small_resp_list
-    if len(small_resp_list) != 0:
-        average = round(total / float(len(small_resp_list)), 2)
-        small_resp_list.sort()
-        maximum = small_resp_list[len(small_resp_list) - 1]
-        median = small_resp_list[len(small_resp_list) / 2]
-        index = int(len(small_resp_list) * 0.99)
-        percentile_99 = small_resp_list[index]
-        index = int(len(small_resp_list) * 0.90)
-        percentile_90 = small_resp_list[index]
-        index = int(len(small_resp_list) * 0.80)
-        percentile_80 = small_resp_list[index]
-        minimum = small_resp_list[0]
-        
-        print "Small Job (",len(small_resp_list) , ") Resp time (min)"
-        print_header()
-        print '\r'
-        print "%s\t%s\t%s\t%s\t%s\t%s\t%s" \
-         % (average, maximum, percentile_99, \
-            percentile_90, percentile_80, median, minimum)
-        print '\n'
-    else:
-        print "There is no Small Job\n"
-
-    # large part
-    large_resp_list = []
-    total = 0.0
-    for item in large:
-        resp = (float(item["end"]) - float(item["qtime"])) / 60.0
-        total += resp
-        large_resp_list.append(round(resp, 1))
-    # response time stored into list large_resp_list
-    if len(large_resp_list) != 0:
-        average = round(total / float(len(large_resp_list)), 2)
-        large_resp_list.sort()
-        maximum = large_resp_list[len(large_resp_list) - 1]
-        median = large_resp_list[len(large_resp_list) / 2]
-        index = int(len(large_resp_list) * 0.99)
-        percentile_99 = large_resp_list[index]
-        index = int(len(large_resp_list) * 0.90)
-        percentile_90 = large_resp_list[index]
-        index = int(len(large_resp_list) * 0.80)
-        percentile_80 = large_resp_list[index]
-        minimum = large_resp_list[0]
-        
-        print "Large Job (",len(large_resp_list) , ") Resp time (min)"
-        print_header()
-        print '\r'
-        print "%s\t%s\t%s\t%s\t%s\t%s\t%s" \
-         % (average, maximum, percentile_99, \
-            percentile_90, percentile_80, median, minimum)
-        print '\n'
-    else:
-        print "There is no Large Job\n"
-
-    # very large part
-    vl_resp_list = []
-    total = 0.0
-    for item in very_large:
-        resp = (float(item["end"]) - float(item["qtime"])) / 60.0
-        total += resp
-        vl_resp_list.append(round(resp, 1))
-    # response time stored into list vl_resp_list
-    if len(vl_resp_list) != 0: 
-        average = round(total / float(len(vl_resp_list)), 2)
-        vl_resp_list.sort()
-        maximum = vl_resp_list[len(vl_resp_list) - 1]
-        median = vl_resp_list[len(vl_resp_list) / 2]
-        index = int(len(vl_resp_list) * 0.99)
-        percentile_99 = vl_resp_list[index]
-        index = int(len(vl_resp_list) * 0.90)
-        percentile_90 = vl_resp_list[index]
-        index = int(len(vl_resp_list) * 0.80)
-        percentile_80 = vl_resp_list[index]
-        minimum = vl_resp_list[0]
-        
-        print "Very Large Job (",len(vl_resp_list) , ") Resp time (min)"
-        print_header()
-        print '\r'
-        print "%s\t%s\t%s\t%s\t%s\t%s\t%s" \
-         % (average, maximum, percentile_99, \
-            percentile_90, percentile_80, median, minimum)
-        print '\n'
-    else:
-        print "There is no Very Large Job\n"
-=======
->>>>>>> 48b19382e27163795f988779f872174e53b875c2
-
 # some globle arguments
 
 vs_dict = {}
@@ -666,7 +578,7 @@ def show_size(job_dict):
             l_dict[jobid] = val
         elif "16384" <= size and size <= "32768":
             vl_dict[jobid] = val
-    print "Job category number"
+    #print "Job category number"
     print "VS\tS\tL\tVL"
     print "%s\t%s\t%s\t%s\n" % (len(vs_dict.keys()), \
           len(s_dict.keys()), len(l_dict.keys()), \
@@ -1128,8 +1040,10 @@ if __name__ == "__main__":
                     help = "show plot on the screen")
     p.add_option("--loss", dest = "loss_of_cap", action = "store_true", \
                     default = False, help = "show loss_of_cap")
-    p.add_option("-z", "--size", dest = "size", action = "store_true", \
-                    default = False, help = "show job number of different size")
+    p.add_option("--write", dest = "write", action = "store_true", \
+                    default = False, help = "write log in alternative form")
+    #p.add_option("-z", "--size", dest = "size", action = "store_true", \
+    #                default = False, help = "show job number of different size")
     p.add_option("-A", "--All", dest = "run_all", action = "store_true", \
                     default = False,  help = "run all functions")
 
@@ -1146,7 +1060,8 @@ if __name__ == "__main__":
 	opts.loss_of_cap = True
         
     if opts.metrics:
-        opts.size = opts.response = opts.slowdown = opts.wait = opts.uwait = True
+        opts.size = opts.response = opts.slowdown = opts.wait = \
+        opts.uwait = True
     if opts.jobs:
         opts.running_jobs = opts.waiting_jobs = True 
     if opts.nodes:
@@ -1163,10 +1078,14 @@ if __name__ == "__main__":
         
     (job_dict, first_submit, first_start, last_end) = parseLogFile(opts.logfile)
 
-    print "number of jobs:", len(job_dict.keys()), '\n'
- 
-    if opts.size:
-        show_size(job_dict)
+    print "number of jobs:", len(job_dict.keys())
+   
+    show_size(job_dict)
+    
+    #test
+
+    #if opts.size:
+    #    show_size(job_dict)
     if opts.response:
         show_all_resp(job_dict)
     if opts.wait:
@@ -1184,6 +1103,8 @@ if __name__ == "__main__":
         loss_of_capacity(job_dict) 
     if opts.happy:
 	happy_job(job_dict)
+    if opts.write:
+        write_file(job_dict)
 #print color_bars
     if opts.alloc:
         draw_job_allocation(job_dict, first_submit, last_end, savefilename)
@@ -1197,12 +1118,13 @@ if __name__ == "__main__":
         draw_waiting_nodes(job_dict, first_submit, last_end, savefilename)
     if opts.running_nodes:
         draw_running_nodes(job_dict, first_submit, last_end, savefilename) 
-   
+     
+ 
 
 
     endtime_sec = time.time()
-    print "---Analysis and plotting are finished, \
-		    please check saved figures if any---"
+    print "---Analysis and plotting are finished,", \
+          "please check saved figures if any---"
     print "Tasks accomplished in %s seconds" \
 		    % (int(endtime_sec - starttime_sec))
 
