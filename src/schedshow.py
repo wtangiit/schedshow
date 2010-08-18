@@ -549,7 +549,8 @@ def draw_waiting_nodes(job_dict, min_start, max_end, savefile=None):
    
  
    
-metric_header = ["Avg", "Max", "99th", "90th", "80th", "Median", "Min"]
+metric_header = [" ", "Avg", "Max", "99th", "90th", "80th",\
+      "Median", "Min"]
 
 def print_header():
     for item in metric_header:
@@ -608,8 +609,7 @@ def show_size(job_dict):
         elif "16384" <= size and size <= "32768":
             vl_dict[jobid] = val
     #print "Job category number"
-    print "VS\tS\tL\tVL"
-    print "%s\t%s\t%s\t%s\n" % (len(vs_dict.keys()), \
+    print "VS: %s  S: %s  L: %s  VL: %s\n" % (len(vs_dict.keys()), \
           len(s_dict.keys()), len(l_dict.keys()), \
           len(vl_dict.keys()) )
 
@@ -636,34 +636,32 @@ def show_resp(job_dict):
     percentile_80 = value_list[index]
     minimum = value_list[0]
 
-    print "Resp time (min)"
-    print_header()
-    print '\r'
     print "%s\t%s\t%s\t%s\t%s\t%s\t%s" \
      % (average, maximum, percentile_99, \
 	percentile_90, percentile_80, median, minimum)
-    print '\n'
 
 def show_all_resp(dictionary):
-    print "All jobs:"
+    print "Resp Time:"
+    print_header()
+    print "\nAll\t",
     show_resp(dictionary)
     if len(s_dict.keys()) != 0:
-        print "Very Small jobs:"
+        print "VS\t",
         show_resp(s_dict)
     else:
         print "No Very Small jobs"
     if len(vs_dict.keys()) != 0:
-        print "Small jobs:"
+        print "S\t",
         show_resp(vs_dict)
     else:
         print "No Small jobs"
     if len(l_dict.keys()) != 0:
-        print "Large jobs:"
+        print "L\t",
         show_resp(l_dict)
     else:
         print "No Large jobs"
     if len(vl_dict.keys()) != 0:
-        print "Very Large jobs:"
+        print "VL\t",
         show_resp(vl_dict)
     else:
         print "No Very Large jobs\n"
@@ -690,35 +688,32 @@ def show_wait(job_dict):
     percentile_80 = value_list[index]
     minimum = value_list[0]
 
-    print "Wait time (min)"
-    print_header()
-    print '\r'
     print "%s\t%s\t%s\t%s\t%s\t%s\t%s" \
 	 % (average, maximum, percentile_99, \
 	percentile_90, percentile_80, median, minimum)
-        
-    print '\n'
 
 def show_all_wait(dictionary):
-    print "All jobs:"
+    print "Wait time:" 
+    print_header()
+    print "\nAll\t",
     show_wait(dictionary)
     if len(s_dict.keys()) != 0:
-        print "Very Small jobs:"
+        print "VS\t",
         show_wait(s_dict)
     else:
         print "No Very Small jobs"
     if len(vs_dict.keys()) != 0:
-        print "Small jobs:"
+        print "S\t",
         show_wait(vs_dict)
     else:
         print "No Small jobs"
     if len(l_dict.keys()) != 0:
-        print "Large jobs:"
+        print "L\t",
         show_wait(l_dict)
     else:
         print "No Large jobs"
     if len(vl_dict.keys()) != 0:
-        print "Very Large jobs:"
+        print "VL\t",
         show_wait(vl_dict)
     else:
         print "No Very Large jobs\n"
@@ -748,35 +743,33 @@ def show_slowdown(job_dict):
     percentile_80 = value_list[index]
     minimum = value_list[0]
 
-    print "slowdown"
-    print_header()
-    print '\r'
     print "%s\t%s\t%s\t%s\t%s\t%s\t%s" \
 	 % (average, maximum, percentile_99, \
 	percentile_90, percentile_80, median, minimum)
 
-    print '\n'
- 
 def show_all_slowdown(dictionary):
-    print "All jobs:"
-    show_slowdown(dictionary)
+    
+    print "Bounded slowdown:"
+    print_header()
+    print "\nAll\t",
     if len(s_dict.keys()) != 0:
-        print "Very Small jobs:"
+        show_slowdown(dictionary)
+        print "VS\t",
         show_slowdown(s_dict)
     else:
         print "No Very Small jobs"
     if len(vs_dict.keys()) != 0:
-        print "Small jobs:"
+        print "S\t",
         show_slowdown(vs_dict)
     else:
         print "No Small jobs"
     if len(l_dict.keys()) != 0:
-        print "Large jobs:"
+        print "L\t",
         show_slowdown(l_dict)
     else:
         print "No Large jobs"
     if len(vl_dict.keys()) != 0:
-        print "Very Large jobs:"
+        print "VL\t",
         show_slowdown(vl_dict)
     else:
         print "No Very Large jobs\n"
@@ -807,35 +800,32 @@ def show_slowdown_alt(job_dict):
     percentile_80 = value_list[index]
     minimum = value_list[0]
 
-    print "slowdown_alt"
-    print_header()
-    print '\r'
     print "%s\t%s\t%s\t%s\t%s\t%s\t%s" \
 	 % (average, maximum, percentile_99, \
 	percentile_90, percentile_80, median, minimum)
   
-    print '\n' 
-
 def show_all_slowdown_alt(dictionary):
-    print "All jobs:"
+    print "Slowdown alternate:"
+    print_header()
+    print "\nAll\t",
     show_slowdown_alt(dictionary)
     if len(s_dict.keys()) != 0:
-        print "Very Small jobs:"
+        print "VS\t",
         show_slowdown_alt(s_dict)
     else:
         print "No Very Small jobs"
     if len(vs_dict.keys()) != 0:
-        print "Small jobs:"
+        print "S\t",
         show_slowdown_alt(vs_dict)
     else:
         print "No Small jobs"
     if len(l_dict.keys()) != 0:
-        print "Large jobs:"
+        print "L\t",
         show_slowdown_alt(l_dict)
     else:
         print "No Large jobs"
     if len(vl_dict.keys()) != 0:
-        print "Very Large jobs:"
+        print "VL\t",
         show_slowdown_alt(vl_dict)
     else:
         print "No Very Large jobs\n"
@@ -863,35 +853,32 @@ def show_uwait(job_dict):
     percentile_80 = value_list[index]
     minimum = value_list[0]
     
-    print "unitelss wait"
-    print_header()
-    print '\r'
     print "%s\t%s\t%s\t%s\t%s\t%s\t%s" % \
 	 (average, maximum, percentile_99, \
 	percentile_90, percentile_80, median, minimum)
     
-    print '\n'
-
 def show_all_uwait(dictionary):
-    print "All jobs:"
+    print "Uwait:"
+    print_header()
+    print "\nAll\t",
     show_uwait(dictionary)
     if len(s_dict.keys()) != 0:
-        print "Very Small jobs:"
+        print "VS\t",
         show_uwait(s_dict)
     else:
         print "No Very Small jobs"
     if len(vs_dict.keys()) != 0:
-        print "Small jobs:"
+        print "S\t",
         show_uwait(vs_dict)
     else:
         print "No Small jobs"
     if len(l_dict.keys()) != 0:
-        print "Large jobs:"
+        print "L\t",
         show_uwait(l_dict)
     else:
         print "No Large jobs"
     if len(vl_dict.keys()) != 0:
-        print "Very Large jobs:"
+        print "VL\t",
         show_uwait(vl_dict)
     else:
         print "No Very Large jobs\n"
@@ -923,7 +910,7 @@ def calculate_sys_util(job_dict, total_sec):
 def show_sys_util(job_dict, total_sec):
     """ print sys util"""
     sysutil = calculate_sys_util(job_dict, total_sec)
-    print "system utilization rate = ", sysutil
+    print "\nsystem utilization rate = ", sysutil
     print '\n'
     
 
@@ -1127,7 +1114,7 @@ if __name__ == "__main__":
     (job_dict, first_submit, first_start, last_end) = \
         parseLogFile(opts.logfile)
     
-    print "number of jobs:", len(job_dict.keys())
+    print "Total number of jobs:", len(job_dict.keys())
    
     show_size(job_dict)
     
