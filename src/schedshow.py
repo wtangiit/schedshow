@@ -278,7 +278,6 @@ def draw_job_allocation(job_dict, min_start, max_end, savefile = None):
     '''illustrate job allocation'''
     
     print "plotting: job allocation chart"
-
     fig = plt.figure()
     ax = fig.add_subplot(111)
     
@@ -287,14 +286,10 @@ def draw_job_allocation(job_dict, min_start, max_end, savefile = None):
         start = float(v["start"])
         end = float(v["end"])
         (x, y) = get_width(v)
-        #width = get_width(v)
-        #x = width[0]
-        #y = width[1]
-        #width[0]:x   start point on y-axes
-        #width[1]:y   end point on y-axes
         threshold_x = (end - start) / 40.0
         threshold_y = 0
-        current_color = get_color(y, x, start, end, threshold_x, threshold_y)
+        current_color = get_color(y, x, start, end, threshold_x, \
+	      threshold_y)
         add_rect(y, x, start, end, current_color)
         ax.barh(x, end - start, y - x, start, facecolor = current_color)
      
@@ -307,7 +302,7 @@ def draw_job_allocation(job_dict, min_start, max_end, savefile = None):
         for j in range(0, 8):
             labels.append("R" + str(i) + str(j))
             labels.append("")
-    ax.set_yticklabels(labels, fontsize = 12)
+    ax.set_yticklabels(labels, fontsize = 11)
     ax.set_ylim(0, 80)
     
     inteval = time_total / 10
@@ -320,7 +315,7 @@ def draw_job_allocation(job_dict, min_start, max_end, savefile = None):
     for i in range(0, 11):
         labels.append(time.asctime(time.localtime(timelist[i]))[4:-4])
     ax.set_xticks(timelist)
-    ax.set_xticklabels(labels, rotation = 30, fontsize = 12)
+    ax.set_xticklabels(labels, rotation = 25, fontsize = 12)
     ax.set_xlim(min_start , max_end)
     ax.set_xlabel('Time', fontsize = 15)
     
@@ -374,7 +369,7 @@ def draw_running_jobs(job_dict, min_start, max_end, savefile=None):
     for i in range(0, 11):
         labels[i] = labels[i][4:19]
     ax.set_xticks(timelist)
-    ax.set_xticklabels(labels, fontsize = 6)
+    ax.set_xticklabels(labels, rotation = 25, fontsize = 11)
     ax.set_xlabel('Time')
     ax.grid(True)
     
@@ -427,7 +422,7 @@ def draw_waiting_jobs(job_dict, min_start, max_end, savefile=None):
     for i in range(0, 11):
         labels[i] = labels[i][4:19]
     ax.set_xticks(timelist)
-    ax.set_xticklabels(labels, fontsize = 6)
+    ax.set_xticklabels(labels, rotation = 25, fontsize = 11)
     ax.set_xlabel('Time')
     ax.grid(True)
     
@@ -480,7 +475,7 @@ def draw_running_nodes(job_dict, min_start, max_end, savefile = None):
     for i in range(0, 11):
         labels[i] = labels[i][4:19]
     ax.set_xticks(timelist)
-    ax.set_xticklabels(labels, fontsize = 6)
+    ax.set_xticklabels(labels, rotation = 25, fontsize = 11)
     ax.set_xlabel('Time')
     ax.grid(True)
     
@@ -533,7 +528,7 @@ def draw_waiting_nodes(job_dict, min_start, max_end, savefile=None):
     for i in range(0, 11):
         labels[i] = labels[i][4:19]
     ax.set_xticks(timelist)
-    ax.set_xticklabels(labels, fontsize = 6)
+    ax.set_xticklabels(labels, rotation = 25, fontsize = 11)
     ax.set_xlabel('Time')
     ax.grid(True)
     
