@@ -590,23 +590,23 @@ def show_size(job_dict):
     """ show all metrics"""
     for k, val in job_dict.iteritems():
         jobid = val["jobid"]
-        host = val["exec_host"].rsplit("-")
-        if len(host) == 4:
-            size = host[3]
-        else:
-            size = host[2]
-        if size == "512":
-            vs_dict[jobid] = val
-        elif "1024" <= size and size <= "2048":
-            s_dict[jobid] = val
-        elif "4096" <= size and size <= "8192":
-            l_dict[jobid] = val
-        elif "16384" <= size and size <= "32768":
-            vl_dict[jobid] = val
-    #print "Job category number"
-    print "VS: %s  S: %s  L: %s  VL: %s\n" % (len(vs_dict.keys()), \
-          len(s_dict.keys()), len(l_dict.keys()), \
-          len(vl_dict.keys()) )
+        host = val["exec_host"]
+        if host[0] == 'A': #intrepid
+            size = int(host.split("-")[-1])
+            if size <= 512:
+                vs_dict[jobid] = val
+            elif 512 < size and size <= 2048:
+                s_dict[jobid] = val
+            elif 2048 < size and size <= 8192:
+                l_dict[jobid] = val
+            elif 8192 < size:
+                vl_dict[jobid] = val
+                    #print "Job category number"
+                    
+    print "Very Small: %s  Small: %s  Large: %s  Very Large: %s\n" \
+        % (len(vs_dict.keys()), len(s_dict.keys()), len(l_dict.keys()), len(vl_dict.keys()) )
+
+            
 
 def show_resp(job_dict):
     '''calculate response time'''
@@ -643,24 +643,16 @@ def show_all_resp(dictionary):
     if len(s_dict.keys()) != 0:
         print "VS\t",
         show_resp(s_dict)
-    else:
-        print "No Very Small jobs"
     if len(vs_dict.keys()) != 0:
         print "S\t",
         show_resp(vs_dict)
-    else:
-        print "No Small jobs"
     if len(l_dict.keys()) != 0:
         print "L\t",
         show_resp(l_dict)
-    else:
-        print "No Large jobs"
     if len(vl_dict.keys()) != 0:
         print "VL\t",
         show_resp(vl_dict)
-    else:
-        print "No Very Large jobs\n"
-    print '\r'
+    print '\n'
     
 def show_wait(job_dict):
     '''calculate waiting time'''
@@ -696,23 +688,15 @@ def show_all_wait(dictionary):
     if len(s_dict.keys()) != 0:
         print "VS\t",
         show_wait(s_dict)
-    else:
-        print "No Very Small jobs"
     if len(vs_dict.keys()) != 0:
         print "S\t",
         show_wait(vs_dict)
-    else:
-        print "No Small jobs"
     if len(l_dict.keys()) != 0:
         print "L\t",
         show_wait(l_dict)
-    else:
-        print "No Large jobs"
     if len(vl_dict.keys()) != 0:
         print "VL\t",
         show_wait(vl_dict)
-    else:
-        print "No Very Large jobs\n"
     print '\r'
  
 def show_slowdown(job_dict):
@@ -749,28 +733,22 @@ def show_all_slowdown(dictionary):
     print "Bounded slowdown:"
     print_header()
     print "\nAll\t",
+    
+    
     if len(s_dict.keys()) != 0:
         show_slowdown(dictionary)
         print "VS\t",
         show_slowdown(s_dict)
-    else:
-        print "No Very Small jobs"
     if len(vs_dict.keys()) != 0:
         print "S\t",
         show_slowdown(vs_dict)
-    else:
-        print "No Small jobs"
     if len(l_dict.keys()) != 0:
         print "L\t",
         show_slowdown(l_dict)
-    else:
-        print "No Large jobs"
     if len(vl_dict.keys()) != 0:
         print "VL\t",
         show_slowdown(vl_dict)
-    else:
-        print "No Very Large jobs\n"
-    print '\r' 
+    print '\n' 
    
 def show_slowdown_alt(job_dict):
     '''calculate slowdown'''
@@ -809,23 +787,15 @@ def show_all_slowdown_alt(dictionary):
     if len(s_dict.keys()) != 0:
         print "VS\t",
         show_slowdown_alt(s_dict)
-    else:
-        print "No Very Small jobs"
     if len(vs_dict.keys()) != 0:
         print "S\t",
         show_slowdown_alt(vs_dict)
-    else:
-        print "No Small jobs"
     if len(l_dict.keys()) != 0:
         print "L\t",
         show_slowdown_alt(l_dict)
-    else:
-        print "No Large jobs"
     if len(vl_dict.keys()) != 0:
         print "VL\t",
         show_slowdown_alt(vl_dict)
-    else:
-        print "No Very Large jobs\n"
     print '\r'
  
 def show_uwait(job_dict):
@@ -863,23 +833,15 @@ def show_all_uwait(dictionary):
     if len(s_dict.keys()) != 0:
         print "VS\t",
         show_uwait(s_dict)
-    else:
-        print "No Very Small jobs"
     if len(vs_dict.keys()) != 0:
         print "S\t",
         show_uwait(vs_dict)
-    else:
-        print "No Small jobs"
     if len(l_dict.keys()) != 0:
         print "L\t",
         show_uwait(l_dict)
-    else:
-        print "No Large jobs"
     if len(vl_dict.keys()) != 0:
         print "VL\t",
         show_uwait(vl_dict)
-    else:
-        print "No Very Large jobs\n"
     print '\r'
  
 def calculate_sys_util(job_dict, total_sec):
