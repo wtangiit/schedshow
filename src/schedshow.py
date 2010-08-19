@@ -542,9 +542,7 @@ def draw_waiting_nodes(job_dict, min_start, max_end, savefile=None):
     if SHOW:
         plt.show()
    
- 
-   
-metric_header = [" ", "Avg", "Max", "99th", "90th", "80th",\
+metric_header = [" ", "Avg", "Avg99", "Max", "99th", "90th", "80th",\
       "Median", "Min"]
 
 def print_header():
@@ -606,8 +604,6 @@ def show_size(job_dict):
     print "Very Small: %s  Small: %s  Large: %s  Very Large: %s\n" \
         % (len(vs_dict.keys()), len(s_dict.keys()), len(l_dict.keys()), len(vl_dict.keys()) )
 
-            
-
 def show_resp(job_dict):
     '''calculate response time'''
     value_list = []
@@ -619,8 +615,10 @@ def show_resp(job_dict):
         value_list.append(round(temp, 1))
     
     average = round(total/float(len(value_list)), 2)
-
+    
     value_list.sort()
+    index = int(len(value_list) * 0.99)
+    avg_99 = round(sum(value_list[0:index]) / len(value_list[0:index]), 2)    
     maximum = value_list[len(value_list) - 1]
     median = value_list[len(value_list) / 2]
     index = int(len(value_list) * 0.99)
@@ -631,8 +629,8 @@ def show_resp(job_dict):
     percentile_80 = value_list[index]
     minimum = value_list[0]
 
-    print "%s\t%s\t%s\t%s\t%s\t%s\t%s" \
-     % (average, maximum, percentile_99, \
+    print "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" \
+     % (average, avg_99, maximum, percentile_99, \
 	percentile_90, percentile_80, median, minimum)
 
 def show_all_resp(dictionary):
@@ -666,6 +664,8 @@ def show_wait(job_dict):
     average = round(total/float(len(value_list)), 2)
     
     value_list.sort()
+    index = int(len(value_list) * 0.99)
+    avg_99 = round(sum(value_list[0:index]) / len(value_list[0:index]), 2)  
     maximum = value_list[len(value_list) - 1]
     median = value_list[len(value_list) / 2]
     index = int(len(value_list) * 0.99)
@@ -676,9 +676,9 @@ def show_wait(job_dict):
     percentile_80 = value_list[index]
     minimum = value_list[0]
 
-    print "%s\t%s\t%s\t%s\t%s\t%s\t%s" \
-	 % (average, maximum, percentile_99, \
-	percentile_90, percentile_80, median, minimum)
+    print "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" \
+     % (average, avg_99, maximum, percentile_99, \
+    percentile_90, percentile_80, median, minimum)
 
 def show_all_wait(dictionary):
     print "Wait time (min):" 
@@ -714,6 +714,8 @@ def show_slowdown(job_dict):
         total += item
     average = round(total/float(len(value_list)), 2)
     value_list.sort()
+    index = int(len(value_list) * 0.99)
+    avg_99 = round(sum(value_list[0:index]) / len(value_list[0:index]), 2)  
     maximum = value_list[len(value_list) - 1]
     median = value_list[len(value_list) / 2]
     index = int(len(value_list) * 0.99)
@@ -724,19 +726,18 @@ def show_slowdown(job_dict):
     percentile_80 = value_list[index]
     minimum = value_list[0]
 
-    print "%s\t%s\t%s\t%s\t%s\t%s\t%s" \
-	 % (average, maximum, percentile_99, \
-	percentile_90, percentile_80, median, minimum)
+    print "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" \
+     % (average, avg_99, maximum, percentile_99, \
+    percentile_90, percentile_80, median, minimum)
 
 def show_all_slowdown(dictionary):
     
     print "Bounded slowdown:"
     print_header()
     print "\nAll\t",
-    
+    show_slowdown(dictionary)
     
     if len(s_dict.keys()) != 0:
-        show_slowdown(dictionary)
         print "VS\t",
         show_slowdown(s_dict)
     if len(vs_dict.keys()) != 0:
@@ -765,6 +766,8 @@ def show_slowdown_alt(job_dict):
         total += item
     average = round(total/float(len(value_list)), 2)
     value_list.sort()
+    index = int(len(value_list) * 0.99)
+    avg_99 = round(sum(value_list[0:index]) / len(value_list[0:index]), 2)  
     maximum = value_list[len(value_list)-1]
     median = value_list[len(value_list)/2]
     index = int(len(value_list) * 0.99)
@@ -775,9 +778,9 @@ def show_slowdown_alt(job_dict):
     percentile_80 = value_list[index]
     minimum = value_list[0]
 
-    print "%s\t%s\t%s\t%s\t%s\t%s\t%s" \
-	 % (average, maximum, percentile_99, \
-	percentile_90, percentile_80, median, minimum)
+    print "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" \
+     % (average, avg_99, maximum, percentile_99, \
+    percentile_90, percentile_80, median, minimum)
       
 def show_all_slowdown_alt(dictionary):
     print "Slowdown alternate:"
@@ -811,6 +814,8 @@ def show_uwait(job_dict):
     
     average = round(total/float(len(value_list)), 2)
     value_list.sort()
+    index = int(len(value_list) * 0.99)
+    avg_99 = round(sum(value_list[0:index]) / len(value_list[0:index]), 2)  
     maximum = value_list[len(value_list)-1]
     median = value_list[len(value_list)/2]
     index = int(len(value_list) * 0.99)
@@ -821,9 +826,9 @@ def show_uwait(job_dict):
     percentile_80 = value_list[index]
     minimum = value_list[0]
     
-    print "%s\t%s\t%s\t%s\t%s\t%s\t%s" % \
-	 (average, maximum, percentile_99, \
-	percentile_90, percentile_80, median, minimum)
+    print "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" \
+     % (average, avg_99, maximum, percentile_99, \
+    percentile_90, percentile_80, median, minimum)
         
 def show_all_uwait(dictionary):
     print "Uwait:"
