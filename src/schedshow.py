@@ -636,7 +636,7 @@ def show_resp(job_dict):
 	percentile_90, percentile_80, median, minimum)
 
 def show_all_resp(dictionary):
-    print "Resp Time:"
+    print "Resp Time (min):"
     print_header()
     print "\nAll\t",
     show_resp(dictionary)
@@ -660,6 +660,7 @@ def show_all_resp(dictionary):
         show_resp(vl_dict)
     else:
         print "No Very Large jobs\n"
+    print '\r'
     
 def show_wait(job_dict):
     '''calculate waiting time'''
@@ -688,7 +689,7 @@ def show_wait(job_dict):
 	percentile_90, percentile_80, median, minimum)
 
 def show_all_wait(dictionary):
-    print "Wait time:" 
+    print "Wait time (min):" 
     print_header()
     print "\nAll\t",
     show_wait(dictionary)
@@ -712,6 +713,7 @@ def show_all_wait(dictionary):
         show_wait(vl_dict)
     else:
         print "No Very Large jobs\n"
+    print '\r'
  
 def show_slowdown(job_dict):
     '''calculate slowdown'''
@@ -768,7 +770,7 @@ def show_all_slowdown(dictionary):
         show_slowdown(vl_dict)
     else:
         print "No Very Large jobs\n"
- 
+    print '\r' 
    
 def show_slowdown_alt(job_dict):
     '''calculate slowdown'''
@@ -798,7 +800,7 @@ def show_slowdown_alt(job_dict):
     print "%s\t%s\t%s\t%s\t%s\t%s\t%s" \
 	 % (average, maximum, percentile_99, \
 	percentile_90, percentile_80, median, minimum)
-  
+      
 def show_all_slowdown_alt(dictionary):
     print "Slowdown alternate:"
     print_header()
@@ -824,6 +826,7 @@ def show_all_slowdown_alt(dictionary):
         show_slowdown_alt(vl_dict)
     else:
         print "No Very Large jobs\n"
+    print '\r'
  
 def show_uwait(job_dict):
     '''calculate unitless wait'''
@@ -851,7 +854,7 @@ def show_uwait(job_dict):
     print "%s\t%s\t%s\t%s\t%s\t%s\t%s" % \
 	 (average, maximum, percentile_99, \
 	percentile_90, percentile_80, median, minimum)
-    
+        
 def show_all_uwait(dictionary):
     print "Uwait:"
     print_header()
@@ -877,6 +880,7 @@ def show_all_uwait(dictionary):
         show_uwait(vl_dict)
     else:
         print "No Very Large jobs\n"
+    print '\r'
  
 def calculate_sys_util(job_dict, total_sec):
     '''calculate sys util'''
