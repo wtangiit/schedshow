@@ -271,9 +271,6 @@ def write_util_alt(job_dict, total_sec, util = None):
         FILE.write(line)
     FILE.close() 
 
-
-
-
 def draw_job_allocation(job_dict, min_start, max_end, savefile = None):
     '''illustrate job allocation'''
     
@@ -675,10 +672,21 @@ def show_wait(job_dict):
     index = int(len(value_list) * 0.80)
     percentile_80 = value_list[index]
     minimum = value_list[0]
-
-    print "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" \
-     % (average, avg_99, maximum, percentile_99, \
-    percentile_90, percentile_80, median, minimum)
+    
+    if not opts.test:
+    	print "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" % (average, avg_99, maximum, percentile_99, \
+												 percentile_90, percentile_80, median, minimum)
+    else:
+    	print "wait,  slowdown, and uwait "
+    	print average
+    	print avg_99
+    	print maximum
+    	print percentile_99
+    	print percentile_90
+    	print percentile_80
+    	print median
+    	print minimum
+    	print "\r"
 
 def show_all_wait(dictionary):
     print "Wait time (min):" 
@@ -715,7 +723,8 @@ def show_slowdown(job_dict):
     average = round(total/float(len(value_list)), 2)
     value_list.sort()
     index = int(len(value_list) * 0.99)
-    avg_99 = round(sum(value_list[0:index]) / len(value_list[0:index]), 2)  
+    avg_99 = round(sum(value_list[0:index]) / len(value_list[0:index]), 2)
+      
     maximum = value_list[len(value_list) - 1]
     median = value_list[len(value_list) / 2]
     index = int(len(value_list) * 0.99)
@@ -725,10 +734,20 @@ def show_slowdown(job_dict):
     index = int(len(value_list) * 0.80)
     percentile_80 = value_list[index]
     minimum = value_list[0]
-
-    print "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" \
-     % (average, avg_99, maximum, percentile_99, \
-    percentile_90, percentile_80, median, minimum)
+    
+    if not opts.test:
+    	print "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" % \
+    	(average, avg_99, maximum, percentile_99, percentile_90, percentile_80, median, minimum)
+    else:
+		print average
+		print avg_99
+		print maximum
+		print percentile_99
+		print percentile_90
+		print percentile_80
+		print median
+		print minimum
+		print "\r"
 
 def show_all_slowdown(dictionary):
     
@@ -826,10 +845,20 @@ def show_uwait(job_dict):
     percentile_80 = value_list[index]
     minimum = value_list[0]
     
-    print "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" \
-     % (average, avg_99, maximum, percentile_99, \
-    percentile_90, percentile_80, median, minimum)
-        
+    if not opts.test:
+		print "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" % \
+		(average, avg_99, maximum, percentile_99, percentile_90, percentile_80, median, minimum)
+    else:
+		print average
+		print avg_99
+		print maximum
+		print percentile_99
+		print percentile_90
+		print percentile_80
+		print median
+		print minimum
+		print "\r"
+		        
 def show_all_uwait(dictionary):
     print "Uwait:"
     print_header()
@@ -864,9 +893,6 @@ def calculate_sys_util(job_dict, total_sec):
             nodes = len(host.split(':'))
             total_nodes = 100
         node_sec = nodes * runtime
-        #print "jobid=%s, nodes=%s, runtime=%s, 
-	#location=%s" % (spec['jobid'], nodes, 
-	#runtime, spec['exec_host'])
         busy_node_sec += node_sec
         
     sysutil = busy_node_sec / (total_sec * total_nodes)
@@ -1047,6 +1073,8 @@ if __name__ == "__main__":
                     help = "write new log accroding to new util rate")
     p.add_option("-A", "--All", dest = "run_all", action = "store_true", \
                     default = False,  help = "run all functions")
+    p.add_option("-t", "--test", dest = "test", action = "store_true", \
+                    default = False,  help = "test option, adaptive to user needs")
 
     (opts, args) = p.parse_args()
     
@@ -1060,7 +1088,7 @@ if __name__ == "__main__":
         opts.slowdown = opts.wait = opts.uwait = opts.happy = \
 	opts.loss_of_cap = True
         
-    if opts.metrics:
+    if opts.metrics and not opts.test:
         opts.response = opts.slowdown = opts.wait = \
         opts.uwait = True
     if opts.jobs:
@@ -1100,7 +1128,14 @@ if __name__ == "__main__":
     if opts.loss_of_cap:
         loss_of_capacity(job_dict) 
     if opts.happy:
-	happy_job(job_dict)
+    	happy_job(job_dict)
+    	
+    if opts.test:
+    	show_wait(job_dict)
+    	show_slowdown(job_dict)
+    	show_uwait(job_dict)
+    	show_sys_util(job_dict, last_end - first_submit)
+    	
 
     if opts.alt:
         write_alt(job_dict, opts.alt)
@@ -1119,13 +1154,9 @@ if __name__ == "__main__":
         draw_waiting_nodes(job_dict, first_submit, last_end, savefilename)
     if opts.running_nodes:
         draw_running_nodes(job_dict, first_submit, last_end, savefilename) 
-     
- 
-
 
     endtime_sec = time.time()
     print "---Analysis and plotting are finished,", \
           "please check saved figures if any---"
     print "Tasks accomplished in %s seconds" \
 		    % (int(endtime_sec - starttime_sec))
-
