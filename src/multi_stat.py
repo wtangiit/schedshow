@@ -118,7 +118,7 @@ def make_statistic(bins):
             end = float(j['end'])
             walltime = float(j['walltime']) * 60
             
-            wait = start - qtime
+            wait = (start - qtime) / 60
             slowdown = (end - qtime) / (end - start)
             uwait = (start - qtime) / walltime
             
@@ -197,7 +197,4 @@ if __name__ == '__main__':
     print "--------------------------"        
     
     make_statistic(bins)
-    
-    
-    
-    
+        
