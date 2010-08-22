@@ -718,9 +718,8 @@ def show_slowdown(job_dict):
         total += temp
         value_list.append(round(temp, 1))
     
-    for item in value_list:
-        total += item
     average = round(total/float(len(value_list)), 2)
+    
     value_list.sort()
     index = int(len(value_list) * 0.99)
     avg_99 = round(sum(value_list[0:index]) / len(value_list[0:index]), 2)
