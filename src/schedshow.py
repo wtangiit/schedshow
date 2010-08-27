@@ -4,6 +4,7 @@
 		which utilizes an external library -- "matplotlib". '''
 
 import time
+import datetime
 import sys
 import random
 import matplotlib.pyplot as plt
@@ -237,9 +238,9 @@ def write_alt(job_dict, filename = None):
     sorted_list = sort_dict_qtime(job_dict)
     for value in sorted_list: 
         jobid = "jobid=" + value["jobid"]
-        qtime = "qtime=" + value["qtime"]
-        start = "start=" + value["start"]
-        end = "end=" + value["end"]
+        qtime = "qtime=" + sec_to_date(value["qtime"])
+        start = "start=" + sec_to_date(value["start"])
+        end = "end=" + sec_to_date(value["end"])
         host = "exec_host=" + value["exec_host"]
         nodes = "nodes=" + value["Resource_List.nodect"]
         walltime ="walltime=" + value["Resource_List.walltime"]
@@ -250,7 +251,17 @@ def write_alt(job_dict, filename = None):
         FILE.write(line)
     FILE.close() 
 
+def sec_to_date(s): 
+    """ convert a string representing second into a formated string"""
+    sec = float(s)
+    date = datetime.datetime(time.gmtime(sec).tm_year, \
+	  time.gmtime(sec).tm_mon, time.gmtime(sec).tm_mday, \
+	  time.gmtime(sec).tm_hour, time.gmtime(sec).tm_min, \
+	  time.gmtime(sec).tm_sec)
+    return str(date)
+
 def write_util_alt(job_dict, total_sec, util = None):
+    """ write a alternate log from PBS log accoding to given util rate"""
     filename = str(util) + "-util-alt.log"
     FILE = open(filename, "w")
     fraction = calculate_sys_util(job_dict, total_sec) / float(util)
@@ -259,9 +270,9 @@ def write_util_alt(job_dict, total_sec, util = None):
     alt_value_list = tune_workload(sorted_value_list, fraction)
     for value in alt_value_list: 
         jobid = "jobid=" + value["jobid"]
-        qtime = "qtime=" + str(value["qtime"])
-        start = "start=" + value["start"]
-        end = "end=" + value["end"]
+        qtime = "qtime=" + sec_to_date(value["qtime"])
+        start = "start=" + sec_to_date(value["start"])
+        end = "end=" + sec_to_date(value["end"])
         host = "exec_host=" + value["exec_host"]
         nodes = "nodes=" + value["Resource_List.nodect"]
         walltime ="walltime=" + value["Resource_List.walltime"]
@@ -403,7 +414,7 @@ def draw_waiting_jobs(job_dict, min_start, max_end, savefile=None):
         timepoints.append(timepoint)
         timepoint = inteval + timepoint
     ax.plot(timepoints, wait_numbers, color = 'red')
-    ax.set_ylim(0, maxwait+maxwait*0.1, color = 'red')
+    ax.set_ylim(0, maxwait+maxwait * 0.1, color = 'red')
 
     ax.set_xlim( min_start , max_end )
     time_total = max_end-min_start
@@ -674,8 +685,9 @@ def show_wait(job_dict):
     minimum = value_list[0]
     
     if not opts.test:
-    	print "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" % (average, avg_99, maximum, percentile_99, \
-												 percentile_90, percentile_80, median, minimum)
+    	print "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" % (average, avg_99,\
+	      maximum, percentile_99, \
+	      percentile_90, percentile_80, median, minimum)
     else:
     	print "wait,  slowdown, and uwait "
     	print average
