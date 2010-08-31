@@ -47,7 +47,6 @@ def add_rect(a_1, a_2, a_3, a_4, color):
 
 def get_color(t_1, t_2, t_3, t_4, thresholdx, thresholdy):  
     """test the point and return a color"""    
-    temp_color = []
     temp_color = color_list[:]
     if len(rec_list) == 0:
         return random.choice(temp_color)
@@ -167,7 +166,7 @@ def parseLogFile(filename):
             spec['walltime'] = 0
             if format_walltime:
                 segs = format_walltime.split(':')
-                walltime_minuntes = int(segs[0]) * 60 + int(segs[1])
+                #walltime_minuntes = int(segs[0]) * 60 + int(segs[1])
                 spec['walltime'] = str(int(segs[0]) * 60 + int(segs[1]))
             else:  #invalid job entry, discard
                 continue
@@ -186,33 +185,33 @@ def getInHMS(seconds):
     return "%02d:%02d:%02d" % (hours, minutes, seconds)
 
 def tune_workload(specs, frac = 1, anchor = 0):
-   '''tune workload heavier or lighter, and adjust the start \
-   time to anchor, specs should be sorted by submission time'''
+    '''tune workload heavier or lighter, and adjust the start \
+	time to anchor, specs should be sorted by submission time'''
 
-   #calc intervals (the first job's interval=0)
-   lastsubtime = 0
-   for spec in specs:
-       if (lastsubtime == 0):
-           interval = 0
-       else:
-           interval = float(spec['qtime']) - float(lastsubtime)
-       lastsubtime = float(spec['qtime'])
-       spec['interval'] = interval
+#calc intervals (the first job's interval=0)
+    lastsubtime = 0
+    for spec in specs:
+        if (lastsubtime == 0):
+            interval = 0
+        else:
+            interval = float(spec['qtime']) - float(lastsubtime)
+        lastsubtime = float(spec['qtime'])
+        spec['interval'] = interval
+        
+    #if anchor is specified, set the first job submission time to anchor
+    if anchor:
+        specs[0]['qtime'] = anchor
+    else:
+        pass
 
-   #if anchor is specified, set the first job submission time to anchor
-   if anchor:
-       specs[0]['qtime'] = anchor
-   else:
-       pass
-
-   last_newsubtime = float(specs[0].get('qtime'))
-   for spec in specs:
-       interval = float(spec['interval'])
-       newsubtime = last_newsubtime + frac * interval
-       spec['qtime'] = newsubtime
-       spec['interval'] = frac * interval
-       last_newsubtime = newsubtime
-   return specs
+    last_newsubtime = float(specs[0].get('qtime'))
+    for spec in specs:
+        interval = float(spec['interval'])
+        newsubtime = last_newsubtime + frac * interval
+        spec['qtime'] = newsubtime
+        spec['interval'] = frac * interval
+        last_newsubtime = newsubtime
+    return specs
 
 def sort_dict_qtime(job_dict):
     """ return a sorted-by-qtime list with job data"""
@@ -225,7 +224,8 @@ def sort_dict_qtime(job_dict):
     key_list = temp_dict.keys()
     key_list.sort()
     for key in key_list:
-       sorted_list.append(temp_dict[key])
+        sorted_list.append(temp_dict[key])
+    
     return sorted_list
 
 def write_alt(job_dict, filename = None): 
@@ -290,7 +290,7 @@ def draw_job_allocation(job_dict, min_start, max_end, savefile = None):
     ax = fig.add_subplot(111)
     
     time_total = max_end - min_start
-    for k, v in job_dict.iteritems():
+    for v in job_dict.itervalues():
         start = float(v["start"])
         end = float(v["end"])
         (x, y) = get_width(v)
@@ -352,7 +352,7 @@ def draw_running_jobs(job_dict, min_start, max_end, savefile=None):
     maxjob = 0
     for i in range(0, 2000):
         job_number = 0
-        for k, v in job_dict.iteritems():
+        for v in job_dict.itervalues():
             if float(v["start"]) < timepoint and timepoint < float(v["end"]):
                 job_number = job_number + 1
         if job_number > maxjob:
@@ -404,7 +404,7 @@ def draw_waiting_jobs(job_dict, min_start, max_end, savefile=None):
     maxwait = 0
     for i in range(0, 2000):
         wait_number = 0
-        for k, spec in job_dict.iteritems():
+        for spec in job_dict.itervalues():
             if float(spec["qtime"]) < timepoint \
 			    and timepoint < float(spec["start"]):
                 wait_number = wait_number + 1
@@ -457,7 +457,7 @@ def draw_running_nodes(job_dict, min_start, max_end, savefile = None):
     maxjobnode = 0
     for i in range(0, 2000):
         job_node = 0
-        for k, spec in job_dict.iteritems():
+        for spec in job_dict.itervalues():
             if float(spec["start"]) < timepoint \
 			    and timepoint < float(spec["end"]):
                 job_node = job_node + int(spec["Resource_List.nodect"])
@@ -510,7 +510,7 @@ def draw_waiting_nodes(job_dict, min_start, max_end, savefile=None):
     maxwaitnode = 0
     for i in range(0, 2000):
         wait_node = 0
-        for k, spec in job_dict.iteritems():
+        for spec in job_dict.itervalues():
             if float(spec["qtime"]) < timepoint \
 			    and timepoint < float(spec["start"]):
                 wait_node = wait_node + int(spec["Resource_List.nodect"])
@@ -562,20 +562,20 @@ happy_dict = {} #temp
 def happy_job(job_dict):
     '''show if the job is a happy job or not'''
     count = 0
-    for k, val in job_dict.iteritems():
+    for val in job_dict.itervalues():
         jobid = val["jobid"]
         qtime = float(val["qtime"])
         stime = float(val["start"])
         size1 = int(val["exec_host"].split("-")[-1])
         prrty1 = (1/float(val["walltime"])) ** 3 * float(size1)
         end = []
-        for k, val in job_dict.iteritems():
+        for val in job_dict.itervalues():
             if qtime >= float(val["qtime"]) and jobid != val["jobid"]:
-               waittime = qtime - float( val["qtime"])
-               size = int(val["exec_host"].split("-")[-1])
-               prrty2 = ((1+waittime)/float(val["walltime"])) ** 3 * float(size)
-               if prrty2 > prrty1:
-                  end.append(val["end"])
+                waittime = qtime - float( val["qtime"])
+                size = int(val["exec_host"].split("-")[-1])
+                prrty2 = ((1+waittime)/float(val["walltime"])) ** 3 * float(size)
+                if prrty2 > prrty1:
+                    end.append(val["end"])
         end.sort()
         if len(end) == 0:
             happy_dict[jobid] = val
@@ -584,7 +584,7 @@ def happy_job(job_dict):
             happy_dict[jobid] = val
             count = count + 1
     print "The number of happy jobs : ", count
-	          
+       
 # some globle arguments
 
 vs_dict = {}
@@ -594,7 +594,7 @@ vl_dict = {}
 
 def show_size(job_dict):
     """ show all metrics"""
-    for k, val in job_dict.iteritems():
+    for val in job_dict.itervalues():
         jobid = val["jobid"]
         host = val["exec_host"]
         if host[0] == 'A': #intrepid
@@ -617,7 +617,7 @@ def show_resp(job_dict):
     value_list = []
     
     total = 0.0
-    for k, spec in job_dict.iteritems():
+    for spec in job_dict.itervalues():
         temp  = (float(spec["end"]) - float(spec["qtime"])) / 60
         total += temp
         value_list.append(round(temp, 1))
@@ -664,7 +664,7 @@ def show_wait(job_dict):
     '''calculate waiting time'''
     value_list = []
     total = 0.0
-    for k, spec in job_dict.iteritems():
+    for spec in job_dict.itervalues():
         temp = (float(spec["start"]) - float(spec["qtime"])) / 60
         total += temp
         value_list.append(round(temp, 1))
@@ -685,20 +685,20 @@ def show_wait(job_dict):
     minimum = value_list[0]
     
     if not opts.test:
-    	print "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" % (average, avg_99,\
+        print "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" % (average, avg_99,\
 	      maximum, percentile_99, \
 	      percentile_90, percentile_80, median, minimum)
     else:
-    	print "wait,  slowdown, and uwait "
-    	print average
-    	print avg_99
-    	print maximum
-    	print percentile_99
-    	print percentile_90
-    	print percentile_80
-    	print median
-    	print minimum
-    	print "\r"
+        print "wait,  slowdown, and uwait "
+        print average
+        print avg_99
+        print maximum
+        print percentile_99
+        print percentile_90
+        print percentile_80
+        print median
+        print minimum
+        print "\r"
 
 def show_all_wait(dictionary):
     print "Wait time (min):" 
@@ -723,7 +723,7 @@ def show_slowdown(job_dict):
     '''calculate slowdown'''
     value_list = []
     total = 0.0
-    for k, spec in job_dict.iteritems():
+    for spec in job_dict.itervalues():
         temp1 = float(spec["start"]) - float(spec["qtime"])
         temp2 = float(spec["end"]) - float(spec["start"])
         temp = (temp1 + temp2) / temp2
@@ -747,18 +747,18 @@ def show_slowdown(job_dict):
     minimum = value_list[0]
     
     if not opts.test:
-    	print "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" % \
+        print "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" % \
     	(average, avg_99, maximum, percentile_99, percentile_90, percentile_80, median, minimum)
     else:
-		print average
-		print avg_99
-		print maximum
-		print percentile_99
-		print percentile_90
-		print percentile_80
-		print median
-		print minimum
-		print "\r"
+        print average
+        print avg_99
+        print maximum
+        print percentile_99
+        print percentile_90
+        print percentile_80
+        print median
+        print minimum
+        print "\r"
 
 def show_all_slowdown(dictionary):
     
@@ -785,7 +785,7 @@ def show_slowdown_alt(job_dict):
     '''calculate slowdown'''
     value_list = []
     total = 0.0
-    for k, spec in job_dict.iteritems():
+    for spec in job_dict.itervalues():
         temp1 = float(spec["start"]) - float(spec["qtime"])
         temp2 = float(spec["end"]) - float(spec["start"])
         temp = (temp1) / temp2
@@ -833,7 +833,7 @@ def show_uwait(job_dict):
     '''calculate unitless wait'''
     value_list = []
     total = 0.0
-    for k, spec in job_dict.iteritems():
+    for spec in job_dict.itervalues():
         wait = float(spec["start"]) - float(spec["qtime"])
         walltime_sec = 60 * float(spec['walltime'])
         uwait = wait / walltime_sec
@@ -855,19 +855,19 @@ def show_uwait(job_dict):
     minimum = value_list[0]
     
     if not opts.test:
-		print "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" % \
+        print "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s" % \
 		(average, avg_99, maximum, percentile_99, percentile_90, percentile_80, median, minimum)
     else:
-		print average
-		print avg_99
-		print maximum
-		print percentile_99
-		print percentile_90
-		print percentile_80
-		print median
-		print minimum
-		print "\r"
-		        
+        print average
+        print avg_99
+        print maximum
+        print percentile_99
+        print percentile_90
+        print percentile_80
+        print median
+        print minimum
+        print "\r"
+        
 def show_all_uwait(dictionary):
     print "Uwait:"
     print_header()
@@ -889,10 +889,9 @@ def show_all_uwait(dictionary):
  
 def calculate_sys_util(job_dict, total_sec):
     '''calculate sys util'''
-    value_list = []
-    total = 0.0
+
     busy_node_sec = 0
-    for k, spec in job_dict.iteritems():
+    for spec in job_dict.itervalues():
         runtime = float(spec["end"]) - float(spec["start"])
         host = spec["exec_host"]
         if host[0] == 'A': #intrepid
@@ -919,7 +918,7 @@ def loss_of_capacity(job_dict):
     """ Show loss of capacity. Two sub fuction is used: 
     get_idle_midplanes(), job_waiting()  """
     event_times = []
-    for key, val in job_dict.iteritems():
+    for val in job_dict.itervalues():
         if val["eventType"] == "Q" or val["eventType"] == "E":
             event_times.append(date_to_sec(val["submitTime"]))
     event_times.sort()
@@ -927,7 +926,7 @@ def loss_of_capacity(job_dict):
     total_wasted = 0
     wasted_node_hour = 0
     for i in range(1, len(event_times)):
-        for key, val in job_dict.iteritems():
+        for val in job_dict.values():
             if (if_job_waiting(event_times[i])):
                 wasted_node_hour = get_idle_midplanes(event_times[i]) * \
                 512 * (event_times[i] - event_times[i-1]) 
@@ -945,14 +944,14 @@ def get_idle_midplanes(time):
     midplanes = 80
     for i in range(0, len(rec_list)):
         if rec_list[i].get_3 < time and time < rec_list[i].get_4:
-            midplannes -= (rec_list[i].get_1 - rec_list[i].get_2)
+            midplanes -= (rec_list[i].get_1 - rec_list[i].get_2)
             print rec_list[i].get_1 - rec_list[i].get_2
     return midplanes
  
 def if_job_waiting(time):
     """ return if exist a waiting job at a specific time """
     flag = False 
-    for key, val in job_dict.iteritems():
+    for val in job_dict.itervalues():
         if float(val["qtime"]) < time and time < float(val["start"]):
             flag = True
     return flag
@@ -966,17 +965,17 @@ def show_cosched_metrics(job_dict, total_sec):
         wasted_node_hour = 0
         hold_list = []
         yield_list = []
-	
+
         total_nodes = 1
-	
-        for k, spec in job_dict.iteritems():
+
+        for spec in job_dict.itervalues():
                 holding = float(spec["hold"])
                 yielding = float(spec.get("yield", 0))
                 if holding > 0:
                         total_hold_time += holding / 60
                         total_hold_job += 1
                         hold_list.append(holding / 60)
-			
+
                         host = spec["exec_host"]
                         if host[0] == 'A': #intrepid
                                 nodes = int(host.split("-")[-1])
@@ -985,14 +984,14 @@ def show_cosched_metrics(job_dict, total_sec):
                                 nodes = len(host.split(':'))
                                 total_nodes = 100
                         wasted_node_hour += (nodes * holding) / 3600
-						 
+
                 if yielding > 0:
                         total_yield_time += yielding / 60
                         total_yield_job += 1
                         yield_list.append(yielding / 60)
-	
+                        
         waisted_sys_util = wasted_node_hour / (total_sec * total_nodes / 3600)
-	
+
         if total_hold_job > 0:
                 hold_list.sort()
                 print "total holding job:", total_hold_job
@@ -1003,7 +1002,7 @@ def show_cosched_metrics(job_dict, total_sec):
                 print "maximum holding time (min):", max(hold_list)
                 print "total waisted node-hour:", wasted_node_hour
                 print "total waisted sysutil:", waisted_sys_util
-	
+
         if total_yield_job > 0:
                 yield_list.sort()
                 total_yield_time /= 60
@@ -1137,14 +1136,14 @@ if __name__ == "__main__":
     if opts.loss_of_cap:
         loss_of_capacity(job_dict) 
     if opts.happy:
-    	happy_job(job_dict)
-    	
+        happy_job(job_dict)
+    
     if opts.test:
-    	show_wait(job_dict)
-    	show_slowdown(job_dict)
-    	show_uwait(job_dict)
-    	show_sys_util(job_dict, last_end - first_submit)
-    	
+        show_wait(job_dict)
+        show_slowdown(job_dict)
+        show_uwait(job_dict)
+        show_sys_util(job_dict, last_end - first_submit)
+    
 
     if opts.alt:
         write_alt(job_dict, opts.alt)
