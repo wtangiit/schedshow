@@ -1003,17 +1003,17 @@ def show_cosched_metrics(job_dict, total_sec):
         '''calculate coscheduling metrics.'''
         total_hold_time = 0
         total_hold_job = 0
-        total_yield_time = 0
-        total_yield_job = 0
+        total_overhead_time = 0
+        total_overhead_job = 0
         wasted_node_hour = 0
         hold_list = []
-        yield_list = []
+        overhead_list = []
 
         total_nodes = 1
 
         for spec in job_dict.itervalues():
                 holding = float(spec["hold"])
-                yielding = float(spec.get("yield", 0))
+                overhead = float(spec.get("overhead", 0))
                 if holding > 0:
                         total_hold_time += holding / 60
                         total_hold_job += 1
@@ -1028,33 +1028,28 @@ def show_cosched_metrics(job_dict, total_sec):
                                 total_nodes = 100
                         wasted_node_hour += (nodes * holding) / 3600
 
-                if yielding > 0:
-                        total_yield_time += yielding / 60
-                        total_yield_job += 1
-                        yield_list.append(yielding / 60)
+                if overhead > 0:
+                        total_overhead_time += overhead / 60
+                        total_overhead_job += 1
+                        overhead_list.append(overhead / 60)
                         
         waisted_sys_util = wasted_node_hour / (total_sec * total_nodes / 3600)
 
         if total_hold_job > 0:
                 hold_list.sort()
                 print "total holding job:", total_hold_job
-                print "average holding time (min):", \
-				total_hold_time / total_hold_job
-                print "median holding time (min):", \
-				hold_list[total_hold_job/2]
+                print "average holding time (min):", total_hold_time / total_hold_job
+                print "median holding time (min):", hold_list[total_hold_job/2]
                 print "maximum holding time (min):", max(hold_list)
                 print "total waisted node-hour:", wasted_node_hour
                 print "total waisted sysutil:", waisted_sys_util
 
-        if total_yield_job > 0:
-                yield_list.sort()
-                total_yield_time /= 60
-                print "total yield job:", total_yield_job
-                print "average yield time (min):", \
-				total_yield_time / total_yield_job
-                print "median yield time (min):", \
-				yield_list[total_yield_job/2]
-                print "maximum yield time (min):", max(yield_list)
+        if total_overhead_job > 0:
+                overhead_list.sort()
+                print "total sync-up job:", total_overhead_job
+                print "average overhead time (min):", total_overhead_time / total_overhead_job
+                print "median overhead time (min):", overhead_list[total_overhead_job/2]
+                print "maximum overhead time (min):", max(overhead_list)
 
         
 if __name__ == "__main__":
