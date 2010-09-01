@@ -114,7 +114,7 @@ def parseLine(line):
     # EventTypes: Q - submitting time, S - starting time, E - ending time
     
     if line_data["eventType"] == "Q":
-        line_data["submitTime"] = first_parse[0]
+        line_data["submittime"] = date_to_sec(first_parse[0])
     line_data["jobid"] = first_parse[2]
     substr = first_parse.pop()
     if len(substr) > 0:
@@ -123,35 +123,78 @@ def parseLine(line):
             tup = item.partition("=")
             if not line_data.has_key(tup[0]):
                 line_data[tup[0]] = tup[2]
-    return line_data                                      
+    return line_data
+   
+def parseline_alt(line):
+    '''parse a line from alternative format'''
+    def len2 (_input):
+        _input = str(_input)
+        if len(_input) == 1:
+            return "0" + _input
+        else:
+            return _input
+    
+    temp= {}
+    splits = line.split(';')
+        
+    for item in splits:
+        tup = item.partition('=')
+        if tup[1] == '=':
+            temp[tup[0]] = tup[2]
+    
+    fmtdate = temp['qtime']
+    submittime_sec = date_to_sec(fmtdate, "%Y-%m-%d %H:%M:%S")
+    temp['submittime'] = submittime_sec
+    temp['qtime'] = submittime_sec
+    start_date = temp['start']
+    start_sec = date_to_sec(start_date, "%Y-%m-%d %H:%M:%S")
+    temp['start'] = start_sec
+    end_date = temp['end']
+    end_sec = date_to_sec(end_date, "%Y-%m-%d %H:%M:%S")
+    temp['end'] = end_sec
+    walltime_sec = temp['Resource_List.walltime']
+    wall_time = int(float(walltime_sec) / 60) 
+    walltime_minutes = len2(wall_time % 60)
+    walltime_hours = len2(wall_time // 60)
+    fmt_walltime = "%s:%s:00" % (walltime_hours, walltime_minutes)
+    temp['Resource_List.walltime'] = fmt_walltime
+    if not temp.has_key('exec_host'):
+        temp['exec_host'] = "unknown"
+    if temp.has_key("Resource_List.nodect"):
+        temp['nodes'] = temp['Resource_List.nodect']
+    else:
+        temp['nodes'] = 'unknown'
+
+    return temp                             
 
 def parseLogFile(filename):
     '''parse the whole work load file'''
-    line_data = {}
     # raw_job_dict = { "<jobid>":line_data, "<jobid2>":line_data2, ...}
     raw_job_dict = {}
     wlf = open(filename, "r")
     
     for line in wlf:
+        line = line.strip('\n')
+        line = line.strip('\r')
         if line[0].isdigit():
-            line = line.strip("\n")
-            line = line.strip("\r")
-            line_data = parseLine(line)
-            
-            jobid = line_data["jobid"]
-            #new jobid encountered, add a new entry for this job
-            if not raw_job_dict.has_key(jobid):
-                raw_job_dict[jobid] = line_data
-            else:  #not a new job jobid, update the existing entry
-                raw_job_dict[jobid].update(line_data)
+            temp = parseLine(line)
+        else:
+            temp = parseline_alt(line)
+
+        jobid = temp['jobid']
+        #new job id encountered, add a new entry for this job
+        if not raw_job_dict.has_key(jobid):
+            raw_job_dict[jobid] = temp
+        else:  #not a new job id, update the existing entry
+            raw_job_dict[jobid].update(temp)
                 
     job_dict = {}
     min_qtime = sys.maxint
     min_start = sys.maxint
     max_end = 0
     for jobid, spec in raw_job_dict.iteritems():
-        if spec.has_key("end") and spec.has_key("submitTime"):
-            qtime_sec = date_to_sec(spec['submitTime'])
+        if spec.has_key("end") and spec.has_key("submittime"):
+            qtime_sec = spec['submittime']
             if qtime_sec < min_qtime:
                 min_qtime = qtime_sec
             if float(spec['start']) < min_start:
@@ -897,8 +940,8 @@ def calculate_sys_util(job_dict, total_sec):
         if host[0] == 'A': #intrepid
             nodes = int(host.split("-")[-1])
             total_nodes = 40960
-        elif host[0] == 'n':
-            nodes = len(host.split(':'))
+        else:
+            nodes = int(spec['nodes'])
             total_nodes = 100
         node_sec = nodes * runtime
         busy_node_sec += node_sec
@@ -1093,8 +1136,7 @@ if __name__ == "__main__":
         
     if opts.run_all:
         opts.alloc = opts.jobs = opts.nodes = opts.response = \
-        opts.slowdown = opts.wait = opts.uwait = opts.happy = \
-	opts.loss_of_cap = True
+        opts.slowdown = opts.wait = opts.uwait = opts.happy = opts.loss_of_cap = True
         
     if opts.metrics and not opts.test:
         opts.response = opts.slowdown = opts.wait = \
@@ -1143,7 +1185,6 @@ if __name__ == "__main__":
         show_slowdown(job_dict)
         show_uwait(job_dict)
         show_sys_util(job_dict, last_end - first_submit)
-    
 
     if opts.alt:
         write_alt(job_dict, opts.alt)
