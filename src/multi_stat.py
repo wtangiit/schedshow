@@ -16,9 +16,16 @@ metric_list = ['wait_avg', 'wait_avg99pct', 'wait_max', 'wait_99pct', 'wait_80pc
              'slowdown_avg', 'slowdown_avg99pct', 'slowdown_max', 'slowdown_99pct', 'slowdown_80pct', 'space',
              'uwait_avg', 'uwait_avg99pct', 'uwait_max', 'uwait_99pct', 'uwait_80pct',
              ]
+metric_list2 = ['wait_avg', 'wait_avg99pct', 'wait_99pct', 
+                'slowdown_avg', 'slowdown_avg99pct', 'slowdown_99pct',
+                'uwait_avg', 'uwait_avg99pct', 'uwait_99pct',
+                ]
 metric_list_cosched = ['hold_no', 'hold_avg', 'hold_max', 'hold_median', 'space',
                        'yield_no', 'yield_avg', 'yield_max', 'yield_median', 'space',
                        'waste_node_hour']
+metric_list_cosched2 = ['hold_no', 'hold_avg', 'hold_max', 'hold_median', 'waste_node_hour',
+                       'yield_no', 'yield_avg', 'yield_max', 'yield_median', ]
+
 
 def date_to_sec(fmtdate, dateformat = "%m/%d/%Y %H:%M:%S"):
     '''convert date into seconds'''
@@ -255,8 +262,8 @@ def print_cosched_statistic(statistic):
         else:
             avg = round(sum(statistic[metric]) / len(statistic[metric]), 2)
             print avg
-            cosched_csvline += str(avg)
-            cosched_csvline += ","
+#            cosched_csvline += str(avg)
+#            cosched_csvline += ","
                         
     print "\n"    
         
@@ -266,8 +273,8 @@ def print_cosched_statistic(statistic):
         else:
             minimum = round(min(statistic[metric]), 2)
             print minimum
-            cosched_csvline += str(minimum)
-            cosched_csvline += ","
+#            cosched_csvline += str(minimum)
+#            cosched_csvline += ","
     
     print "\n"
             
@@ -277,8 +284,13 @@ def print_cosched_statistic(statistic):
         else:
             maximum = round(max(statistic[metric]), 2)
             print maximum
-            cosched_csvline += str(maximum)
-            cosched_csvline += ","
+#            cosched_csvline += str(maximum)
+#            cosched_csvline += ","
+    
+    for metric in metric_list_cosched2:
+        avg = round(sum(statistic[metric]) / len(statistic[metric]), 2)
+        cosched_csvline += str(avg)
+        cosched_csvline += ","
             
     outfile = open("output_cosched.csv", "a")
     outfile.write(cosched_csvline + "\n")
@@ -305,8 +317,8 @@ def print_statistic(statistic):
         else:
             avg = round(sum(statistic[metric]) / len(statistic[metric]), 2)
             print avg
-            sched_csvline += str(avg)
-            sched_csvline += ","
+            #sched_csvline += str(avg)
+            #sched_csvline += ","
             
     print "\n"    
         
@@ -316,8 +328,8 @@ def print_statistic(statistic):
         else:
             minimum = round(min(statistic[metric]), 2)
             print minimum
-            sched_csvline += str(minimum)
-            sched_csvline += ","
+            #sched_csvline += str(minimum)
+            #sched_csvline += ","
     
     print "\n"
             
@@ -327,14 +339,18 @@ def print_statistic(statistic):
         else:
             maximum = round(max(statistic[metric]), 2)
             print maximum
-            sched_csvline += str(maximum)
-            sched_csvline += ","
+            #sched_csvline += str(maximum)
+            #sched_csvline += ","
+            
+    for metric in metric_list2:
+        avg = round(sum(statistic[metric]) / len(statistic[metric]), 2)
+        sched_csvline += str(avg)
+        sched_csvline += ","
             
     outfile = open("output_sched.csv", "a")
     outfile.write(sched_csvline + "\n")
     outfile.close()
                 
-
 if __name__ == '__main__':    
     if len(sys.argv) == 1:
         print __helpmsg__
