@@ -123,6 +123,12 @@ def parseLine(line):
             tup = item.partition("=")
             if not line_data.has_key(tup[0]):
                 line_data[tup[0]] = tup[2]
+                
+    if line_data.has_key("Resource_List.nodect"):
+        line_data['nodes'] = line_data['Resource_List.nodect']
+    else:
+        line_data['nodes'] = 'unknown'
+        
     return line_data
    
 def parseline_alt(line):
@@ -213,7 +219,7 @@ def parseLogFile(filename):
                 spec['walltime'] = str(int(segs[0]) * 60 + int(segs[1]))
             else:  #invalid job entry, discard
                 continue
-            
+               
             job_dict[jobid] = spec 
     wlf.close()
                                      

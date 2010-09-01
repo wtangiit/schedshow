@@ -263,12 +263,63 @@ def match_workload(jobdict1, jobdict2):
             print line
             new_file.write(line)
         new_file.close()
+
+def is_number(s):
+    try:
+        float(s)
+        return True
+    except ValueError:
+        return False
+
+    
+def tune_workload_by_runtime(jobdict, N, outputfile):
+    '''tune the workload by multiple N on each job runtime'''
+    
+    specs = jobdict.values()
+    specs.sort(subtimecmp)
+        
+    for spec in specs:
+        #construct new "start" and "end" time, making runtime N times than the original 
+        start = spec['start']
+        if is_number(start):
+            start = float(start)
+            end = float(spec['end'])
+            spec['start'] = sec_to_date(start, "%Y-%m-%d %H:%M:%S")
+        else:
+            start = date_to_sec(start)
+            end = date_to_sec(spec['end'])
+            
+        if is_number(spec['qtime']):
+            spec['qtime'] = sec_to_date(float(spec['qtime']), "%Y-%m-%d %H:%M:%S")
+            
+        if not is_number(spec['Resource_List.walltime']):
+            format_walltime = spec.get('Resource_List.walltime')
+            segs = format_walltime.split(':')
+            walltime_sec = str(int(segs[0]) * 3600 + int(segs[1]) * 60 + int(segs[2]))
+            spec['Resource_List.walltime'] = walltime_sec
+            
+        runtime = end - start
+        new_end = start + runtime * N
+        spec['end'] = sec_to_date(new_end, "%Y-%m-%d %H:%M:%S")
+                
+    if outputfile:
+        new_file = open(outputfile, "w")
+    else:
+        new_file = open("newfile_tuned.log", "w")
+    for spec in specs:
+        line = ""
+        for key, val in spec.iteritems():
+            line += "%s=%s;" % (key, val)
+        line += "\n"
+        print line
+        new_file.write(line)
+    new_file.close()
         
     
 def write_new_mached_workload(jobdict1, jobdict2):
     new_joblist = match_workload(jobdict1, jobdict2)
     if new_joblist:
-        new_file = open("newfile.log", "w")
+        new_file = open("newfile_mached.log", "w")
         line = ""
         for spec in new_joblist:
             for key, val in spec.iteritems():
@@ -308,6 +359,12 @@ if __name__ == '__main__':
         dest="c_trace_end", type="date",
         help="cluster job submission time (in job trace) should be prior to 12.01am on this date \
         By default it equals to the last job submission time in job trace 'cjob'"))
+    p.add_option(Option("-p", "--prolong",
+        dest="prolong", type="float",
+        help="generate a new jobtrace which prolong the runtime of each job by 'prolong' times compared with the original job trace"))
+    p.add_option("-o", "--output", dest="outputlog", type="string",
+        help="output file name")
+    
     
     opts, args = p.parse_args()
     
@@ -352,5 +409,8 @@ if __name__ == '__main__':
         
     if opts.match:
         match_workload(job_dict_i, job_dict_c)
+        
+    if opts.prolong:
+        tune_workload_by_runtime(job_dict_c, opts.prolong, opts.outputlog)
       
     
