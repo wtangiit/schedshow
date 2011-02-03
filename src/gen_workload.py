@@ -295,7 +295,8 @@ def tune_workload_by_runtime(jobdict, N, outputfile):
         if not is_number(spec['Resource_List.walltime']):
             format_walltime = spec.get('Resource_List.walltime')
             segs = format_walltime.split(':')
-            walltime_sec = str(int(segs[0]) * 3600 + int(segs[1]) * 60 + int(segs[2]))
+            walltime_sec = int(segs[0]) * 3600 + int(segs[1]) * 60 + int(segs[2])
+            walltime_sec = str(walltime_sec*N)
             spec['Resource_List.walltime'] = walltime_sec
             
         runtime = end - start
@@ -328,6 +329,105 @@ def write_new_mached_workload(jobdict1, jobdict2):
             new_file.write(line)
         new_file.close()
         
+def pbs2swf(jobdict):
+    specs1 = jobdict.values()
+    specs1.sort(subtimecmp)
+        
+    i = 0
+    new_joblist = []
+    first_qtime = 0
+    
+    user_dict ={}
+    queue_dict ={}
+    
+    for spec in specs1:
+        new_spec = [-1 for j in range(19)]
+        i += 1
+        
+        #1 job number
+        new_spec[1] = i  
+        
+        #2 submit time
+        qtime = spec['submittime']
+        if first_qtime == 0:
+            new_spec[2] = 0
+            first_qtime = qtime
+        else:
+            subtime = qtime - first_qtime
+            new_spec[2] = int(subtime)
+        
+        #3. wait time
+        #4. Run Time
+        
+        runtime = float(spec['end']) - float(spec['start'])
+        new_spec[4] = int(runtime)
+        
+        #5. Number of Allocate Processors
+        #6. Average CPU Time Used
+        #7. Used Memory
+        
+        #8. Requested Number of Processors
+        processors = spec["Resource_List.ncpus"]
+        new_spec[8] = processors
+        
+        #9. Requested Time
+        #convert walltime from 'hh:mm:ss' to float of minutes
+        format_walltime = spec.get('Resource_List.walltime')
+        if format_walltime:
+            segs = format_walltime.split(':')
+            walltime_sec = int(segs[0])*3600 + int(segs[1])*60 + int(segs[2])
+        else:
+            walltime_sec = 0
+        new_spec[9] = walltime_sec
+            
+        
+        #10. Requested Memory
+        #11. Status
+        
+        #12. User ID
+        username = spec.get("user")
+        if user_dict.has_key(username):
+            user_id = user_dict[username]
+        else:
+            current_user_number = len(user_dict)
+            user_id = current_user_number + 1
+            user_dict[username] = user_id
+        new_spec[10] = user_id        
+        
+        #13. Group ID
+        #14. Executable (Application) Number
+        #15. Queue Number
+        queuename = spec.get("queue")
+        if queue_dict.has_key(queuename):
+            queue_id = queue_dict[queuename]
+        else:
+            current_queue_number = len(queue_dict)
+            queue_id = current_queue_number + 1
+            queue_dict[queuename] = queue_id
+        new_spec[15] = queue_id   
+        
+        #16. Partition Number
+        #17. Preceding Job Number
+        #18. Think Time from Preceding Job
+        new_joblist.append(new_spec)
+
+    if new_joblist:
+        new_file = open("newfile2.log", "w")
+        for spec in new_joblist:
+            line = ""
+            for item in spec:
+                line += "  %s" % item
+            line += "\n"
+            print line
+            new_file.write(line)
+        new_file.close()
+        
+    print user_dict
+    print queue_dict
+    
+    print first_qtime
+    print sec_to_date(first_qtime)
+        
             
 if __name__ == '__main__':    
     if len(sys.argv) == 1:
@@ -342,7 +442,11 @@ if __name__ == '__main__':
     p.add_option("-m", "--match", dest = "match", \
             action = "store_true", \
             default = False, \
-            help="plot bars represent for individual jobs ")
+            help="match an old job trace")
+    p.add_option("-w", "--pbs2swf", dest = "pbs2swf", \
+            action = "store_true", \
+            default = False, \
+            help="convert the job trace of pbs style into swf format")
     p.add_option(Option("-S", "--Start",
         dest="bg_trace_start", type="date",
         help="bg job submission times (in job trace) should be after 12.01am on this date.\
@@ -412,5 +516,9 @@ if __name__ == '__main__':
         
     if opts.prolong:
         tune_workload_by_runtime(job_dict_c, opts.prolong, opts.outputlog)
+        
+    if opts.pbs2swf:
+        pbs2swf(job_dict_i)
+        
       
     
