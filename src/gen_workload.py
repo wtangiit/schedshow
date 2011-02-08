@@ -171,12 +171,12 @@ def parseLogFile(filename):
 #            else:  #invalid job entry, discard
 #                continue
 
-            if spec.get('Resource_List.nodect'):
-                spec['nodes'] = spec.get('Resource_List.nodect')
-                if int(spec['nodes']) == 40960:
-                    continue                    
-            else:  #invalid job entry, discard
-                continue
+#            if spec.get('Resource_List.nodect'):
+#                spec['nodes'] = spec.get('Resource_List.nodect')
+#                if int(spec['nodes']) == 40960:
+#                    continue                    
+#            else:  #invalid job entry, discard
+#                continue
             
             job_dict[jobid] = spec 
     wlf.close()
