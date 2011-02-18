@@ -342,6 +342,8 @@ def pbs2swf(jobdict):
     
     for spec in specs1:
         new_spec = [-1 for j in range(19)]
+        new_spec[0] = ""
+        
         i += 1
         
         #1 job number
@@ -357,12 +359,19 @@ def pbs2swf(jobdict):
             new_spec[2] = int(subtime)
         
         #3. wait time
+        wait =  float(spec['start']) - qtime
+        new_spec[3] = int(wait)
+        
         #4. Run Time
         
         runtime = float(spec['end']) - float(spec['start'])
         new_spec[4] = int(runtime)
         
         #5. Number of Allocate Processors
+        partition_size = int(spec['exec_host'].split("-")[-1])
+        allocated_proc = partition_size * 4
+        new_spec[5] = allocated_proc
+        
         #6. Average CPU Time Used
         #7. Used Memory
         
@@ -392,7 +401,7 @@ def pbs2swf(jobdict):
             current_user_number = len(user_dict)
             user_id = current_user_number + 1
             user_dict[username] = user_id
-        new_spec[10] = user_id        
+        new_spec[12] = user_id        
         
         #13. Group ID
         #14. Executable (Application) Number
@@ -412,7 +421,7 @@ def pbs2swf(jobdict):
         new_joblist.append(new_spec)
 
     if new_joblist:
-        new_file = open("newfile2.log", "w")
+        new_file = open("output_swf.log", "w")
         for spec in new_joblist:
             line = ""
             for item in spec:
