@@ -1,12 +1,10 @@
 #!/usr/bin/env python
-'''Schedshow is a integrated program which will analyse the out \
-        put file from Qsim. This program is written in python, \
-        which utilizes an external library -- "matplotlib". '''
+'''multi_stat.py calculates the average metrics based on multiple simulation output logs for the same workload. '''
 
 import time
 import sys
 
-__helpmsg__ = "Usage: statplot2.py <log-file-1> [<log-file-2> <log-file-3> ... ...]"
+__helpmsg__ = "Usage: multi_comp.py <log-file-1> [<log-file-2> <log-file-3> ... ...]"
 
 WARMUPJOBS = 0
 SLOWDOWN_BOUND = 10
@@ -16,16 +14,9 @@ metric_list = ['wait_avg', 'wait_avg99pct', 'wait_max', 'wait_99pct', 'wait_80pc
              'slowdown_avg', 'slowdown_avg99pct', 'slowdown_max', 'slowdown_99pct', 'slowdown_80pct', 'space',
              'uwait_avg', 'uwait_avg99pct', 'uwait_max', 'uwait_99pct', 'uwait_80pct',
              ]
-metric_list2 = ['wait_avg', 'wait_avg99pct', 'wait_99pct', 
-                'slowdown_avg', 'slowdown_avg99pct', 'slowdown_99pct',
-                'uwait_avg', 'uwait_avg99pct', 'uwait_99pct',
-                ]
-metric_list_cosched = ['hold_no', 'hold_avg', 'hold_max', 'hold_median', 'space',
-                       'yield_no', 'yield_avg', 'yield_max', 'yield_median', 'space',
-                       'waste_node_hour']
-metric_list_cosched2 = ['hold_no', 'hold_avg', 'hold_max', 'hold_median', 'waste_node_hour',
-                       'yield_no', 'yield_avg', 'yield_max', 'yield_median', ]
-
+metric_list2 = ['wait_avg', 'wait_avg99pct', 'wait_99pct', 'slowdown_avg', 'slowdown_avg99pct', 'slowdown_99pct',
+                'uwait_avg', 'uwait_avg99pct', 'uwait_99pct', ]
+        
 
 def date_to_sec(fmtdate, dateformat = "%m/%d/%Y %H:%M:%S"):
     '''convert date into seconds'''
@@ -165,144 +156,15 @@ def make_statistic(bins):
         statistic['uwait_80pct'].append(uwait_list[index])
         
     print_statistic(statistic)
-    
-def cosched_metrics(bins):
-    statistic = {}
-    for metric in metric_list_cosched:
-        statistic[metric] = []
-    statistic['space'] = "\n"
-    
-    for k in bins:
-        yield_list = []
-        hold_list = []
-        waste_nodehour_list = []
-        
-        for spec in bins[k]:
-            #all in second
-            hold_time = float(spec.get("hold", 0)) / 60
-            yield_time = float(spec.get("yield", 0)) / 60
-            if hold_time > 0:
-                hold_list.append(hold_time)
-                
-                host = spec["exec_host"]
-                if host[0] == 'A': #intrepid
-                    nodes = int(host.split("-")[-1])
-                elif host[0] == 'n':
-                    nodes = len(host.split(':'))
-                waste_nodehour_list.append((nodes * hold_time) / 60)
-                         
-            if yield_time > 0:
-                yield_list.append(yield_time)
-                    
-        #yield
-        total_yield = len(yield_list)
-        if total_yield > 0:
-            yield_list.sort()
-            statistic['yield_no'].append(total_yield)
-            statistic['yield_max'].append(yield_list[-1])
-            statistic['yield_avg'].append(sum(yield_list) / total_yield)
-            if total_yield % 2 ==0:
-                index =total_yield / 2
-                median = (yield_list[index] + yield_list[index-1]) / 2.0
-            else:
-                index = (total_yield - 1) / 2
-                median = yield_list[index]
-            statistic['yield_median'].append(median)
-        else:
-            statistic['yield_no'].append(0)
-            statistic['yield_max'].append(0)
-            statistic['yield_avg'].append(0)
-            statistic['yield_median'].append(0)
-                                
-        #hold
-        total_hold = len(hold_list)
-        if total_hold > 0:
-            hold_list.sort()
-            statistic['hold_no'].append(total_hold)
-            statistic['hold_max'].append(hold_list[-1])
-            statistic['hold_avg'].append(sum(hold_list) / total_hold)
-            if total_hold % 2 ==0:
-                index = total_hold / 2
-                median = (hold_list[index] + hold_list[index-1]) / 2.0
-            else:
-                index = (total_hold - 1) / 2
-                median = hold_list[index]        
-            statistic['hold_median'].append(median)
-        
-            #wasted node hour
-            statistic['waste_node_hour'].append(sum(waste_nodehour_list))
-        else:
-            statistic['hold_no'].append(0)
-            statistic['hold_max'].append(0)
-            statistic['hold_avg'].append(0)
-            statistic['hold_median'].append(0)
-            statistic['waste_node_hour'].append(0)
-        
-    print_cosched_statistic(statistic)
 
-
-def print_cosched_statistic(statistic):
-    print '\n'
-    for metric in metric_list_cosched:
-        if metric == "space":
-            print "\n"
-        else:
-            avg = round(sum(statistic[metric]) / len(statistic[metric]), 2)
-            minimum = round(min(statistic[metric]), 2)
-            maximum = round(max(statistic[metric]), 2)
-            print "%s, %s, %s, %s" % (metric, avg, minimum, maximum)
-            
-    print "\n"
-    
-    cosched_csvline = ""
-            
-    for metric in metric_list_cosched:
-        if metric == "space":
-            print "\n"
-        else:
-            avg = round(sum(statistic[metric]) / len(statistic[metric]), 2)
-            print avg
-#            cosched_csvline += str(avg)
-#            cosched_csvline += ","
-                        
-    print "\n"    
-        
-    for metric in metric_list_cosched:
-        if metric == "space":
-            print "\n"
-        else:
-            minimum = round(min(statistic[metric]), 2)
-            print minimum
-#            cosched_csvline += str(minimum)
-#            cosched_csvline += ","
-    
-    print "\n"
-            
-    for metric in metric_list_cosched:
-        if metric == "space":
-            print "\n"
-        else:
-            maximum = round(max(statistic[metric]), 2)
-            print maximum
-#            cosched_csvline += str(maximum)
-#            cosched_csvline += ","
-    
-    for metric in metric_list_cosched2:
-        avg = round(sum(statistic[metric]) / len(statistic[metric]), 2)
-        cosched_csvline += str(avg)
-        cosched_csvline += ","
-            
-    outfile = open("output_cosched.csv", "a")
-    outfile.write(cosched_csvline + "\n")
-    outfile.close()
-            
     
 def print_statistic(statistic):
+    print "metric,    avg,    min,    max"
     for metric in metric_list:
         if metric == "space":
             print "\n"
         else:
-            avg = round(sum(statistic[metric]) / len(statistic[metric]), 2)
+            avg = round(sum(statistic[metric]) / len(statistic[metric]), 3)
             minimum = round(min(statistic[metric]), 2)
             maximum = round(max(statistic[metric]), 2)
             print "%s, %s, %s, %s" % (metric, avg, minimum, maximum)
@@ -310,38 +172,7 @@ def print_statistic(statistic):
     print "\n"
     
     sched_csvline = ""
-            
-    for metric in metric_list:
-        if metric == "space":
-            print "\n"
-        else:
-            avg = round(sum(statistic[metric]) / len(statistic[metric]), 2)
-            print avg
-            #sched_csvline += str(avg)
-            #sched_csvline += ","
-            
-    print "\n"    
-        
-    for metric in metric_list:
-        if metric == "space":
-            print "\n"
-        else:
-            minimum = round(min(statistic[metric]), 2)
-            print minimum
-            #sched_csvline += str(minimum)
-            #sched_csvline += ","
-    
-    print "\n"
-            
-    for metric in metric_list:
-        if metric == "space":
-            print "\n"
-        else:
-            maximum = round(max(statistic[metric]), 2)
-            print maximum
-            #sched_csvline += str(maximum)
-            #sched_csvline += ","
-            
+           
     for metric in metric_list2:
         avg = round(sum(statistic[metric]) / len(statistic[metric]), 2)
         sched_csvline += str(avg)
@@ -359,10 +190,14 @@ if __name__ == '__main__':
     bins = {}
     lognames = []
     
+    total_pairs = 0
+    
+    
     for i in range(1, len(sys.argv)):
         lognames.append(sys.argv[i])
         
     for logpath in lognames:
+        
         (jobdict, first_submit, first_start, last_end) = parseLogFile(logpath)
         if not bins.has_key(logpath):
             bins[logpath] = []
@@ -374,5 +209,4 @@ if __name__ == '__main__':
     print "--------------------------"        
     
     make_statistic(bins)
-    cosched_metrics(bins)
         
