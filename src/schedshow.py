@@ -197,12 +197,15 @@ def parseLogFile(filename):
     job_dict = {}
     min_qtime = sys.maxint
     min_start = sys.maxint
+    max_qtime = 0
     max_end = 0
     for jobid, spec in raw_job_dict.iteritems():
         if spec.has_key("end") and spec.has_key("submittime"):
             qtime_sec = spec['submittime']
             if qtime_sec < min_qtime:
                 min_qtime = qtime_sec
+            if qtime_sec > max_qtime:
+                max_qtime = qtime_sec
             if float(spec['start']) < min_start:
                 min_start = float(spec['start'])
             if float(spec['end']) > max_end:
@@ -223,7 +226,7 @@ def parseLogFile(filename):
             job_dict[jobid] = spec 
     wlf.close()
                                      
-    return job_dict, min_qtime, min_start, max_end
+    return job_dict, min_qtime, min_start, max_qtime, max_end
 
 def getInHMS(seconds):
     '''this allows convert sec into form HH:MM:SS'''
@@ -767,6 +770,62 @@ def show_all_wait(dictionary):
         print "VL\t",
         show_wait(vl_dict)
     print '\r'
+    
+def show_utility_wait(job_dict, debug_file_name):
+    '''show average wait weighted by utility scores when job starts'''
+    dbgfile = open(debug_file_name, "r")
+    total_utility_wait = 0
+    total_utility = 0
+    total_job = 0
+    total_top_job = 0
+    total_backfill_job = 0
+    total_wait = 0
+    total = 0
+    
+    jobid_list = []
+    for line in dbgfile:
+        line = line.strip('\n')
+        line = line.strip('\r')
+        fields = line.split(';')
+        if len(fields) > 1 and fields[1] == "S":
+            total_job += 1
+            jobid = fields[2]
+            jobid_list.append(jobid)
+            job_pos = fields[3]
+            job_utility = float(fields[3]) / 1000
+            spec = job_dict[jobid]
+            wait = (float(spec["start"]) - float(spec["qtime"]))
+            total_utility_wait += job_utility * wait
+            total_utility += job_utility
+            total_wait += wait
+            if job_pos == '0':
+                total_backfill_job += 1
+            if job_pos == '1':
+                total_top_job += 1
+    print "total_utility=", total_utility
+    print "total_top_job=", total_top_job
+                
+    avg_wait = total_wait / total_job
+    avg_utility_wait = total_utility_wait / total_utility
+    
+    jobids = job_dict.keys()
+    
+    list1 = set([])
+    waitlist = list([])
+    for id in jobids:
+        if id not in jobid_list:
+            list1.add(id)
+            spec = job_dict[id]
+            temp = (float(spec["start"]) - float(spec["qtime"])) / 60
+            waitlist.append(temp)
+    print "job in job_dict but not in debug log:", len(list1)
+    #print waitlist
+    
+    print "total_jobs: ", total_job
+    print "avg wait (min): ", avg_wait / 60
+    print "avg. utility weighted wait (min): ",  avg_utility_wait / 60
+    print "proportion of top job: ", float(total_top_job) / total_job
+    print "proportion of backfilled job: ", float(total_backfill_job) / total_job
  
 def show_slowdown(job_dict):
     '''calculate slowdown'''
@@ -968,8 +1027,7 @@ def loss_of_capacity(job_dict):
     get_idle_midplanes(), job_waiting()  """
     event_times = []
     for val in job_dict.itervalues():
-        if val["eventType"] == "Q" or val["eventType"] == "E":
-            event_times.append(date_to_sec(val["submitTime"]))
+        event_times.append(float(val["qtime"]))
     event_times.sort()
     # previous code may merge into parse part.
     total_wasted = 0
@@ -1127,6 +1185,8 @@ if __name__ == "__main__":
                     default = False,  help = "run all functions")
     p.add_option("-t", "--test", dest = "test", action = "store_true", \
                     default = False,  help = "test option, adaptive to user needs")
+    p.add_option("-d", "--debuglog", dest = "debuglog", type = "string", \
+					default = False,  help = "parse in debug log path to get extra info")
 
     (opts, args) = p.parse_args()
     
@@ -1134,14 +1194,13 @@ if __name__ == "__main__":
         print "please specify path of log file"
         p.print_help()
         exit()
-        
+          
     if opts.run_all:
         opts.alloc = opts.jobs = opts.nodes = opts.response = \
         opts.slowdown = opts.wait = opts.uwait = opts.happy = opts.loss_of_cap = True
         
     if opts.metrics and not opts.test:
-        opts.response = opts.slowdown = opts.wait = \
-        opts.uwait = True
+        opts.response = opts.slowdown = opts.wait = opts.uwait = True
     if opts.jobs:
         opts.running_jobs = opts.waiting_jobs = True 
     if opts.nodes:
@@ -1156,10 +1215,12 @@ if __name__ == "__main__":
 
     starttime_sec = time.time()
         
-    (job_dict, first_submit, first_start, last_end) = \
+    (job_dict, first_submit, first_start, last_submit, last_end) = \
         parseLogFile(opts.logfile)
     
     print "Total number of jobs:", len(job_dict.keys())
+    print "First submit: ", sec_to_date(first_submit)
+    print "Last end: ", sec_to_date(last_end)
    
     show_size(job_dict)
     
@@ -1175,11 +1236,14 @@ if __name__ == "__main__":
     if opts.cosched:
         show_cosched_metrics(job_dict, last_end - first_submit)
     if opts.metrics:
-        show_sys_util(job_dict, last_end - first_submit)
+        show_sys_util(job_dict, last_submit - first_submit)
     if opts.loss_of_cap:
         loss_of_capacity(job_dict) 
     if opts.happy:
         happy_job(job_dict)
+        
+    if opts.debuglog:
+        show_utility_wait(job_dict, opts.debuglog)   
     
     if opts.test:
         show_wait(job_dict)
