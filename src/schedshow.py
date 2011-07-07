@@ -382,9 +382,9 @@ def draw_job_allocation(job_dict, min_start, max_end, savefile = None):
     ax.grid(True)
     
     if savefile:
-        savefile += "-alloc.eps"
+        savefile += "-alloc.png"
     else:
-        savefile = "schedshow-alloc.eps"
+        savefile = "schedshow-alloc.png"
     
     plt.savefig(savefile)
     
@@ -396,7 +396,7 @@ def draw_running_jobs(job_dict, min_start, max_end, savefile=None):
     print "plotting: running jobs"
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    plt.title("running jobs")
+    plt.title("number of running jobs")
     inteval = (max_end-min_start) / 2000.0   # this may modified 
     timepoint = min_start
     timepoints = []
@@ -434,9 +434,9 @@ def draw_running_jobs(job_dict, min_start, max_end, savefile=None):
     ax.grid(True)
     
     if savefile:
-        savefile += "-jobs-running.eps"
+        savefile += "-jobs-running.png"
     else:
-        savefile = "schedshow-jobs-running.eps"
+        savefile = "schedshow-jobs-running.png"
     
     plt.savefig(savefile)
     
@@ -448,7 +448,7 @@ def draw_waiting_jobs(job_dict, min_start, max_end, savefile=None):
     print "plotting: waiting jobs"
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    plt.title("waiting jobs")
+    plt.title("number waiting jobs")
     inteval = (max_end-min_start) / 2000.0   # this may modified 
     timepoint = min_start
     timepoints = []
@@ -487,9 +487,9 @@ def draw_waiting_jobs(job_dict, min_start, max_end, savefile=None):
     ax.grid(True)
     
     if savefile:
-        savefile += "-jobs-waiting.eps"
+        savefile += "-jobs-waiting.png"
     else:
-        savefile = "schedshow-jobs-waiting.eps"
+        savefile = "schedshow-jobs-waiting.png"
     
     plt.savefig(savefile)
     
@@ -501,7 +501,7 @@ def draw_running_nodes(job_dict, min_start, max_end, savefile = None):
     print "plotting: system utilization-busy nodes"
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    plt.title("running nodes")
+    plt.title("busy nodes")
     inteval = (max_end - min_start) / 2000.0   # this may modified 
     timepoint = min_start
     timepoints = []
@@ -540,9 +540,9 @@ def draw_running_nodes(job_dict, min_start, max_end, savefile = None):
     ax.grid(True)
     
     if savefile:
-        savefile += "-sysutil-busy.eps"
+        savefile += "-sysutil-busy.png"
     else:
-        savefile = "schedshow-sysutil-busy.eps"
+        savefile = "schedshow-sysutil-busy.png"
     
     plt.savefig(savefile)
     
@@ -593,9 +593,9 @@ def draw_waiting_nodes(job_dict, min_start, max_end, savefile=None):
     ax.grid(True)
     
     if savefile:
-        savefile += "-sysutil-requested.eps"
+        savefile += "-sysutil-requested.png"
     else:
-        savefile = "schedshow-sysutil-requested.eps"
+        savefile = "schedshow-sysutil-requested.png"
     
     plt.savefig(savefile)
     
@@ -771,8 +771,10 @@ def show_all_wait(dictionary):
         show_wait(vl_dict)
     print '\r'
     
-def show_utility_wait(job_dict, debug_file_name):
+def show_utility_wait(job_dict, log_file_name):
     '''show average wait weighted by utility scores when job starts'''
+    debug_file_name = log_file_name[:-4] + "-debug.log"
+    
     dbgfile = open(debug_file_name, "r")
     total_utility_wait = 0
     total_utility = 0
@@ -780,8 +782,7 @@ def show_utility_wait(job_dict, debug_file_name):
     total_top_job = 0
     total_backfill_job = 0
     total_wait = 0
-    total = 0
-    
+   
     jobid_list = []
     for line in dbgfile:
         line = line.strip('\n')
@@ -826,6 +827,7 @@ def show_utility_wait(job_dict, debug_file_name):
     print "avg. utility weighted wait (min): ",  avg_utility_wait / 60
     print "proportion of top job: ", float(total_top_job) / total_job
     print "proportion of backfilled job: ", float(total_backfill_job) / total_job
+    print "wwait:", avg_utility_wait / 60, round(float(total_backfill_job) / total_job, 3), round(float(total_top_job) / total_job, 3)
  
 def show_slowdown(job_dict):
     '''calculate slowdown'''
@@ -1018,7 +1020,8 @@ def calculate_sys_util(job_dict, total_sec):
 def show_sys_util(job_dict, total_sec):
     """ print sys util"""
     sysutil = calculate_sys_util(job_dict, total_sec)
-    print "\nsystem utilization rate = ", sysutil
+    print "\nsystem utilization_rate = ", sysutil
+    print "makes span (min):", total_sec / 3600
     print '\n'
     
 
@@ -1185,7 +1188,7 @@ if __name__ == "__main__":
                     default = False,  help = "run all functions")
     p.add_option("-t", "--test", dest = "test", action = "store_true", \
                     default = False,  help = "test option, adaptive to user needs")
-    p.add_option("-d", "--debuglog", dest = "debuglog", type = "string", \
+    p.add_option("-d", "--debuglog", dest = "debuglog", action="store_true", \
 					default = False,  help = "parse in debug log path to get extra info")
 
     (opts, args) = p.parse_args()
@@ -1236,14 +1239,14 @@ if __name__ == "__main__":
     if opts.cosched:
         show_cosched_metrics(job_dict, last_end - first_submit)
     if opts.metrics:
-        show_sys_util(job_dict, last_submit - first_submit)
+        show_sys_util(job_dict, last_end - first_submit)
     if opts.loss_of_cap:
         loss_of_capacity(job_dict) 
     if opts.happy:
         happy_job(job_dict)
         
     if opts.debuglog:
-        show_utility_wait(job_dict, opts.debuglog)   
+        show_utility_wait(job_dict, opts.logfile)   
     
     if opts.test:
         show_wait(job_dict)
