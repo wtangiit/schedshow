@@ -636,7 +636,39 @@ def happy_job(job_dict):
             happy_dict[jobid] = val
             count = count + 1
     print "The number of happy jobs : ", count
-       
+    
+def count_happy_job(job_dict):
+    '''show if the job is a happy job or not'''
+    count = 0
+    specs = []
+    for spec in job_dict.itervalues():
+		specs.append(spec)
+	
+    def _subtimecmp(spec1, spec2):
+		return cmp(spec1.get('qtime'), spec2.get('qtime'))
+
+    specs.sort(_subtimecmp)
+
+    for spec in specs:
+		jobid = spec['jobid']
+		qtime = float(spec['qtime'])
+		stime = float(spec['start'])
+		earlier_job_ends = [] 
+
+		for spec2 in specs:
+			if spec2['qtime'] < spec['qtime']:
+				earlier_job_ends.append(float(spec2['end']))
+			else:
+				break
+			
+		if len(earlier_job_ends) == 0:
+			count += 1
+		else:
+			if stime <= max(earlier_job_ends):
+				count += 1
+			
+    print "happy job count: %s, ratio: %s" % (count, float(count)/len(specs))
+                  
 # some globle arguments
 
 vs_dict = {}
@@ -1243,7 +1275,7 @@ if __name__ == "__main__":
     if opts.loss_of_cap:
         loss_of_capacity(job_dict) 
     if opts.happy:
-        happy_job(job_dict)
+        count_happy_job(job_dict)
         
     if opts.debuglog:
         show_utility_wait(job_dict, opts.logfile)   
