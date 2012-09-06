@@ -3,10 +3,11 @@
 '''this script is to scrub user and account related information for PBS-style job log. Following fields are 
 anonymized by natural numbers:
 user
-account (presenting project name)
+account (representing project name)
 args
 exe
 pwd
+(note: the later three contain user name in their paths thus they are also be hidden) 
 
 Usage: ./log_scrub.py -i input_log
 
@@ -26,8 +27,7 @@ __helpmsg__ = "Usage: python log_scrub.py -i input_log_path"
 
     
 def log_scrub(inputfile):
-    '''scrub pbs style job trace, hidden fields: user, account(project name), 
-    arg, pwd, exc (the later three contains user name in their path '''
+    '''scrub pbs style job trace, hidden fields: user, account (project name), arg, pwd, exc'''
     infile = open(inputfile, "r")
     outfile = open(inputfile+".scrub", "w")
     
@@ -116,7 +116,7 @@ if __name__ == '__main__':
     opts, args = p.parse_args()
     
     if not opts.inputfile:
-        print "please specify path of input log file (log to be anonymized"
+        print "please specify path of input log file (log to be anonymized)"
         p.print_help()
         exit()
         
