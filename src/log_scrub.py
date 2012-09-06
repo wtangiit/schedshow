@@ -17,10 +17,8 @@ the same directory of input_log
 '''
 
 import sys
-import time
-from datetime import datetime
 from optparse import OptionParser
-import optparse
+
 
 __helpmsg__ = "Usage: python log_scrub.py -i input_log_path"
 
@@ -105,9 +103,6 @@ def log_scrub(inputfile):
         
             
 if __name__ == '__main__':    
-    if len(sys.argv) == 1:
-        print __helpmsg__
-        sys.exit(1)
         
     p = OptionParser()
     p.add_option("-i", dest = "inputfile", type = "string", 
